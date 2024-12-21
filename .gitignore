@@ -54,3 +54,5 @@ Thumbs.db
 # System files
 .trash/
 *.~undo-tree~
+pb_data/
+..bfg-report/
