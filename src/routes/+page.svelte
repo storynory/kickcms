@@ -71,6 +71,3 @@
     </button>
 </form>
 
-<style>
-    /* Styles remain unchanged from your original code */
-</style>

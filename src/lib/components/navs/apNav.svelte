@@ -23,14 +23,34 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
     };
 </script>
 
-<nav>
+<nav class = "content">
     {#if userState.user}
-    <div class="nav-left"><a href="/dashboard">Dash</a></div>
-    <div class="nav-left"><a href="/posts/new">New Post</a></div>
-    <div class="nav-left"><a href="/images">Images</a></div>
-    <div class="nav-left"><a href="/categories">Categories</a></div>
+    <div class="nav-left">
+        <a href="/dashboard" aria-label="Go to Dashboard">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true" 
+          >
+            <rect x="7" y="9" width="10" height="9" rx="2" ry="2"></rect>
+            <path d="M9 9V4"></path>
+            <path d="M15 9V4"></path>
+            <path d="M7 22h10"></path>
+          </svg>
+        </a>
+      </div>
+    
+
     {/if}
     <div class="nav-right">
+        <div class="-p-x"><a href="/posts/new">+ Create</a></div>
         <button
             class="user-icon"
             onclick={toggleDropdown}
@@ -58,7 +78,11 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
         align-items: center;
         background-color: #333;
         color: white;
-        padding: 10px 20px;
+        padding: 10px 50px ;
+        position: fixed;
+       width: 100%;
+       z-index: 99;
+   
     }
 
   a {
@@ -72,7 +96,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
     .nav-right {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         position: relative; /* For dropdown positioning */
     }
 

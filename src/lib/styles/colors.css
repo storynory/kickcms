@@ -1,0 +1,43 @@
+.j-bk-prime {
+    background-color: #007A5E;
+}
+
+.icon.prime path {
+    fill: white;
+}
+
+.j-bk-white {
+    background-color: white;
+}
+
+.j-bk-second {
+        background-color:midnightblue;
+}
+
+.j-bk-neutral {
+    background-color: ivory;
+}
+
+.j-txt-white,
+.j-txt-white a {
+        color: ivory;
+}
+
+
+
+.j-txt-prime {
+        color:#007A5E; 
+}
+
+.j-txt-second {
+        color: midnightblue;
+}
+
+a {
+    color: inherit;
+}
+
+a:hover {
+     color: #FF6161;
+     background: yellow;
+}

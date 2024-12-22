@@ -1,89 +1,63 @@
-
 <script>
     import PocketBase from 'pocketbase';
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-    import { browser } from '$app/environment'; // Check if in the browser
-    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
-  
-
+    import { browser } from '$app/environment';
+    import { pb } from '$lib/pocketbase.svelte.js';
+    import { quillOptions } from "$lib/quillConfig.js";
   
     const state = $state({
       postId: null,
       title: '',
-      description: '', // Quill editor content
+      description: '',
       error: '',
-      success: ''
+      success: '',
+      showModal: false // Track modal visibility
     });
   
-    let quill; // Variable for Quill instance
-    let quillContainer; // Reference for Quill container
-  
+    let quill; // Quill instance
+    let quillContainer; // Reference to Quill container
     import { page } from '$app/stores';
     const postId = $page.params.id;
   
     onMount(async () => {
-    if (!browser) return; // Prevent SSR execution
-
-    // Dynamically import Quill only in the browser
-    const { default: Quill } = await import('quill');
-
-    // Initialise Quill editor
-    quill = new Quill(quillContainer, {
-        theme: 'snow',
-        placeholder: 'Write your category description here...',
-        modules: {
-        toolbar: [
-            [{ size: ['small', false, 'large', 'huge'] }], // Font sizes
-            ['bold', 'italic', 'underline', 'strike'], // Formatting
-            [{ color: [] }, { background: [] }], // Text and background colours
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'], // Media
-            ['clean'] // Remove formatting
-            
-        ]
-    }
-    });
-
-    // Sync Quill content to state.description
-    quill.on('text-change', () => {
+      if (!browser) return;
+  
+      const { default: Quill } = await import('quill');
+      quill = new Quill(quillContainer, quillOptions);
+  
+      quill.on('text-change', () => {
         state.description = quill.root.innerHTML;
-    });
-
-    // Load existing category if editing
-    if (postId !== 'new') {
+      });
+  
+      if (postId !== 'new') {
         try {
-            const cat = await pb.collection('categories').getOne(postId);
-            state.postId = cat.id;
-            state.title = cat.title;
-            state.description = cat.description;
-
-            // Set initial content in Quill editor
-            quill.root.innerHTML = state.description;
+          const cat = await pb.collection('categories').getOne(postId);
+          state.postId = cat.id;
+          state.title = cat.title;
+          state.description = cat.description;
+  
+          quill.root.innerHTML = state.description;
         } catch (err) {
-            console.error('Failed to fetch category:', err);
-            state.error = 'Category not found.';
+          console.error('Failed to fetch category:', err);
+          state.error = 'Category not found.';
         }
-    }
-    
-});
+      }
+    });
   
-  
-  
-    // Save or Update Post
     const savePost = async () => {
       state.error = '';
       state.success = '';
   
       const data = {
         title: state.title,
-        description: state.description // Updated content from Quill
+        description: state.description
       };
   
       try {
         if (state.postId) {
           await pb.collection('categories').update(state.postId, data);
-          state.success = 'Post updated successfully!';
+          state.success = 'Category updated successfully!';
         } else {
           const response = await pb.collection('categories').create(data);
           state.postId = response.id;
@@ -94,58 +68,121 @@
         state.error = 'Failed to save category.';
       }
     };
-
-    // add press key to save
+  
+    // Modal-related functions
+    const openModal = () => (state.showModal = true);
+    const closeModal = () => (state.showModal = false);
+  
+    const confirmDeletePost = async () => {
+      closeModal();
+      state.error = '';
+      state.success = '';
+  
+      try {
+        await pb.collection('categories').delete(state.postId);
+        state.success = 'Category deleted successfully!';
+        goto('/dashboard');
+      } catch (err) {
+        console.error('Failed to delete category:', err);
+        state.error = 'Failed to delete category.';
+      }
+    };
+  
     function handleKeydown(event) {
-        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-            event.preventDefault();
-            savePost();
-        }
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        savePost();
+      }
     }
   </script>
   <svelte:window on:keydown={handleKeydown} />
-  
   <h1>{state.postId ? 'Edit Category' : 'Create New Category'}</h1>
-  
-  <!-- Success/Error Messages -->
-  {#if state.success}
-    <p style="color: green;">{state.success}</p>
-  {/if}
-  {#if state.error}
-    <p style="color: red;">{state.error}</p>
-  {/if}
-  
-  <!-- Post Form -->
-  <form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
-    <label for="title">Title:</label>
-    <input id="title" type="text" bind:value={state.title} placeholder="Post Title" required />
-  
- 
-    <label for="description">Description:</label>
-    <div id="quill-container" bind:this={quillContainer}></div> <!-- Quill Container -->
-  
-    <button type="submit">{state.postId ? 'Update Category' : 'Create Category'}</button>
-    <button type="button" onclick={() => goto('/dashboard')}>Back to dashboard</button>
-  </form>
-  
-  {@html state.description}
-    <style>
-  /* General Reset */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
 
- 
-  h1 {
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: 500;
-    color: #3a3a3a;
-    margin-bottom: 2rem;
-    font-family: 'Playfair Display', serif; /* A refined, elegant serif */
-  }
+<!-- Success/Error Messages -->
+{#if state.success}
+  <p style="color: green;">{state.success}</p>
+{/if}
+{#if state.error}
+  <p style="color: red;">{state.error}</p>
+{/if}
+
+<!-- Form -->
+<form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
+  <label for="title">Title:</label>
+  <input id="title" type="text" bind:value={state.title} placeholder="Category Title" required />
+
+  <label for="description">Description:</label>
+  <div id="quill-container" bind:this={quillContainer}></div>
+
+  <button type="submit">{state.postId ? 'Update Category' : 'Create Category'}</button>
+  <button type="button" onclick={() => goto('/dashboard')}>Back to dashboard</button>
+  {#if state.postId}
+    <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Category</button>
+  {/if}
+</form>
+
+<!-- Confirmation Modal -->
+{#if state.showModal}
+  <div class="modal-backdrop">
+    <div class="modal">
+      <p>Are you sure you want to delete this category? This action cannot be undone.</p>
+      <button onclick={confirmDeletePost} style="background-color: #d9534f; color: white;">Yes, Delete</button>
+      <button onclick={closeModal} style="background-color: #f4f4f4; color: #555;">Cancel</button>
+    </div>
+  </div>
+{/if}
+<style>
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal p {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: #444;
+}
+
+.modal button {
+  margin: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal button:first-child {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+}
+
+.modal button:last-child {
+  background-color: #f4f4f4;
+  color: #555;
+  border: 1px solid #ddd;
+}
+
 
   form {
     display: flex;
@@ -242,9 +279,7 @@
 
   /* Responsive Design */
   @media (max-width: 768px) {
-    h1 {
-      font-size: 2rem;
-    }
+   
 
     form {
       padding: 2rem;

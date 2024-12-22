@@ -49,43 +49,19 @@
     fetchPosts();
 </script>
 <!-- Welcome Message -->
-{#if userState.user}
-  <p>Welcome, {userState.user.name || userState.user.email}!</p>
-{:else}
-  <p>You need to be logged in to view posts.</p>
-{/if}
-<h1>Your Website Admin</h1>
-<div class="svg-container">
-    <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="100"
-    height="100"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="black"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true" 
-  >
-    <rect x="7" y="9" width="10" height="9" rx="2" ry="2"></rect>
-    <path d="M9 9V4"></path>
-    <path d="M15 9V4"></path>
-    <path d="M7 22h10"></path>
-  </svg>
-  <p>Socket CMS</p>
-</div>
+
+<h1>Posts</h1>
 <div class="search-container">
     <input
         bind:value={query}
         class="search-input"
         type="text"
         name="q"
-        placeholder="Search Posts"
+        placeholder="Search by title or excerpt"
         aria-label="Search"
         oninput={debouncedSearch} 
     />
-  
+    <button class="search-button" onclick={debouncedSearch}>Search</button>
 </div>
 
 
@@ -112,14 +88,25 @@
 {/if}
 
 <style>
-
-
-.svg-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #4a4a4a;
 }
 
+h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #444;
+}
+
+p {
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
 
 /* Posts Grid */
 .posts-grid {
@@ -136,10 +123,18 @@
     font-size: 2rem;
   }
 
-
+  h2 {
+    font-size: 1.5rem;
+  }
 }
 
 /* Page Styling */
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #4a4a4a;
+}
 
 /* Center the search container */
 .search-container {
@@ -176,7 +171,25 @@
     font-style: italic;
 }
 
+/* Search Button */
+.search-button {
+    padding: 1rem 2rem;
+    font-size: 1.25rem;
+    margin-left: 1rem;
+    background-color: #0078ff;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
 
+/* Button Hover Effect */
+.search-button:hover {
+    background-color: #005fcc;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -185,12 +198,14 @@
         gap: 1rem;
     }
 
-    .search-input
-  {
+    .search-input,
+    .search-button {
         width: 100%;
     }
 
-   
+    .search-button {
+        margin-left: 0;
+    }
 }
 </style>
 
