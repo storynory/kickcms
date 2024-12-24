@@ -1,3 +1,3 @@
-export const shared = $state([
+export const state = $state([
   
 ]);

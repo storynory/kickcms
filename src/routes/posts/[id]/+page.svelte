@@ -4,22 +4,24 @@
     import { onMount } from 'svelte';
     import { slugify } from '$lib/utils/slugify.js';
     import { browser } from '$app/environment';
+    import {quillOptions} from "$lib/quillConfig.js"
+    import {state} from "$lib/shared.svelte.js"
+    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+  
+ 
     
-    const pb = new PocketBase('http://127.0.0.1:8090');
-
-    const state = $state({
-        postId: null,
-        title: '',
-        slug: '',
-        slugFixed: false,
-        contents: '',
-        error: '',
-        success: '',
-        showModal: false // Track modal visibility
-    });
+        state.postId = null;
+        state.title = ''
+        state.slug =''
+        state.slugFixed = false
+        state.contents =''
+        state.error = ''
+        state.success = ''
+        state.showModal = false // Track modal visibility
+  
 
     let quill; // Variable for Quill instance
-    let quillContainer; // Reference for Quill container
+    let quillContainer; // Reference for Quill container - I think this would be the shared state
 
     import { page } from '$app/stores';
     const postId = $page.params.id;
@@ -29,11 +31,8 @@
 
     const { default: Quill } = await import('quill');
     const Delta = Quill.import('delta'); // Import Delta for custom clipboard behaviour
-
-    quill = new Quill(quillContainer, {
-        theme: 'snow',
-        placeholder: 'Write your post content here...',
-    });
+    
+    quill = new Quill(quillContainer, quillOptions);
 
     // Add custom clipboard matcher to respect line breaks as paragraphs
     quill.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
