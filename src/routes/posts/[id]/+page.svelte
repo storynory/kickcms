@@ -34,23 +34,7 @@
     
     quill = new Quill(quillContainer, quillOptions);
 
-    // Add custom clipboard matcher to respect line breaks as paragraphs
-    quill.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
-        const text = node.data;
-        const lines = text.split('\n'); // Split text by line breaks
-        const newDelta = new Delta();
-
-        lines.forEach((line, index) => {
-            if (line.trim() !== '') {
-                newDelta.insert(line.trim()); // Add the text
-                if (index < lines.length - 1) {
-                    newDelta.insert('\n'); // Add a paragraph break
-                }
-            }
-        });
-
-        return newDelta;
-    });
+  
 
     // Update state contents on text change
     quill.on('text-change', () => {
@@ -145,30 +129,39 @@
 {#if state.error}
   <p style="color: red;">{state.error}</p>
 {/if}
-
+ <button type="button" onclick={() => goto('/dashboard')}>Back to dashboard</button>
+  
 <!-- Post Form -->
 <form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
-  <label for="title">Title:</label>
-  <input id="title" type="text" bind:value={state.title} placeholder="Post Title" required />
-
-  <label for="slug">Slug:</label>
-  <input
-    id="slug"
-    type="text"
-    bind:value={state.slug}
-    oninput={() => (state.slugFixed = true)} 
-    placeholder="Slug"
-    required
-  />      
-
-  <label for="contents">Contents:</label>
-  <div id="quill-container" bind:this={quillContainer}></div> <!-- Quill Container -->
-
-  <button type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
-  <button type="button" onclick={() => goto('/dashboard')}>Back to dashboard</button>
-  {#if state.postId}
+    <button type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
+     {#if state.postId}
     <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Post</button>
-  {/if}
+{/if}
+    <label for="title">Title:</label>
+    <input id="title" type="text" bind:value={state.title} placeholder="Post Title" required />
+
+    <label for="slug">Slug:</label>
+    <input
+        id="slug"
+        type="text"
+        bind:value={state.slug}
+        oninput={() => (state.slugFixed = true)}
+        placeholder="Slug"
+        required
+    />
+
+    <label for="excerpt">Excerpt:</label>
+    <textarea
+        id="excerpt"
+        bind:value={state.excerpt}
+        placeholder="Short summary or introduction"
+        rows="3"
+    ></textarea>
+
+    <label for="contents">Contents:</label>
+    <div id="quill-container" bind:this={quillContainer}></div> <!-- Quill Container -->
+
+
 </form>
 
 <!-- Confirmation Modal -->
