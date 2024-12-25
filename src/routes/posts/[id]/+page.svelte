@@ -1,13 +1,10 @@
 <script>
-  
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { slugify } from '$lib/utils/slugify.js';
     import { page } from '$app/stores';
-    import { quillOptions } from "$lib/quillConfig.js";
-    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
-   //import Editor from "$lib/components/quillEditor.svelte"
-  
+    import { quillOptions } from '$lib/quillConfig.js';
+    import { pb } from '$lib/pocketbase.svelte.js';
 
     const state = $state({
         postId: null,
@@ -17,23 +14,27 @@
         contents: '',
         error: '',
         success: '',
-        excerpt: "",
-        showModal: false // Track modal visibility
+        excerpt: '',
+        featuredImage: null, // Stores the selected image ID
+        images: [], // Stores images for modal
+        featuredImageData: null, // Stores data for the featured image
+        showModal: false, // Modal visibility
+        altText: '', // Alt text for the featured image
+        imageTitle: '', // Title for the featured image
     });
+
     const postId = $page.params.id;
-    let quillContainer; // Reference for Quill container
+    let quillContainer;
 
     onMount(async () => {
-      const { default: Quill } = await import('quill');
-       let quill = new Quill(quillContainer, quillOptions);
-        // Update state contents on text change
+        const { default: Quill } = await import('quill');
+        const quill = new Quill(quillContainer, quillOptions);
+
         quill.on('text-change', () => {
             state.contents = quill.root.innerHTML;
         });
 
-
-          // If editing an existing post, fetch and populate the data
-     if (postId !== 'new') {
+        if (postId !== 'new') {
             try {
                 const post = await pb.collection('posts').getOne(postId);
                 state.postId = post.id;
@@ -42,19 +43,26 @@
                 state.contents = post.contents;
                 state.slugFixed = true;
                 state.excerpt = post.excerpt;
+                state.featuredImage = post.featuredImage;
+
+                // Fetch featured image data if it exists
+                if (state.featuredImage) {
+                    const imageData = await pb.collection('images').getOne(state.featuredImage);
+                    state.featuredImageData = imageData;
+                    state.altText = imageData.alt || '';
+                    state.imageTitle = imageData.title || '';
+                }
+
                 quill.root.innerHTML = post.contents;
             } catch (err) {
                 setFeedback('error', 'Post not found.');
             }
         }
-
     });
-
-   
 
     const setFeedback = (type, message) => {
         state[type] = message;
-        setTimeout(() => (state[type] = ''), 3000); // Clear message after 3 seconds
+        setTimeout(() => (state[type] = ''), 3000);
     };
 
     const handleRequest = async (fn, successMessage, errorMessage) => {
@@ -67,43 +75,70 @@
         }
     };
 
+    let lastSavedState = {};
 
- 
+    const savePost = async () => {
+        const currentState = {
+            title: state.title,
+            slug: state.slug,
+            contents: state.contents,
+            excerpt: state.excerpt,
+            featuredImage: state.featuredImage, // Save the featured image ID
+        };
 
-let lastSavedState = {}; // To track the last saved post state
+        if (JSON.stringify(currentState) !== JSON.stringify(lastSavedState)) {
+            await handleRequest(
+                async () => {
+                    if (state.postId) {
+                        await pb.collection('posts').update(state.postId, currentState);
+                    } else {
+                        const createdPost = await pb.collection('posts').create(currentState);
+                        state.postId = createdPost.id;
+                    }
 
-const savePost = () => {
-    // Current state to compare
-    const currentState = {
-        title: state.title,
-        slug: state.slug,
-        contents: state.contents,
-        excerpt: state.excerpt,
+                    // Save updated featured image metadata
+                    if (state.featuredImageData) {
+                        await pb.collection('images').update(state.featuredImage, {
+                            alt: state.altText,
+                            title: state.imageTitle,
+                        });
+                    }
+
+                    lastSavedState = { ...currentState };
+                },
+                'Post saved successfully!',
+                'Failed to save post.'
+            );
+        } else {
+            console.log('No changes detected, skipping save.');
+        }
     };
 
-    // Check if the current state differs from the last saved state
-    if (JSON.stringify(currentState) !== JSON.stringify(lastSavedState))  {
-        handleRequest(
-            async () => {
-                if (state.postId) {
-                    await pb.collection('posts').update(state.postId, currentState);
-                } else {
-                    const createdPost = await pb.collection('posts').create(currentState);
-                    state.postId = createdPost.id;
-                }
-                lastSavedState = { ...currentState }; // Update the last saved state
-            },
-            'Post saved successfully!',
-            'Failed to save post.'
-        );
-    } else {
-        console.log("No changes detected, skipping save.");
-    }
-};
+    const openModal = async () => {
+        state.showModal = true;
+        try {
+            state.images = await pb.collection('images').getFullList({ limit: 50 });
+        } catch (err) {
+            setFeedback('error', 'Failed to load images.');
+        }
+    };
 
-    // Modal-related functions
-    const openModal = () => (state.showModal = true);
-    const closeModal = () => (state.showModal = false);
+    const closeModal = () => {
+        state.showModal = false;
+    };
+
+    const selectImage = async (imageId) => {
+        try {
+            const imageData = await pb.collection('images').getOne(imageId);
+            state.featuredImage = imageId;
+            state.featuredImageData = imageData;
+            state.altText = imageData.alt || '';
+            state.imageTitle = imageData.title || '';
+            closeModal();
+        } catch (err) {
+            setFeedback('error', 'Failed to select image.');
+        }
+    };
 
     const confirmDeletePost = () => handleRequest(
         async () => {
@@ -114,101 +149,161 @@ const savePost = () => {
         'Failed to delete post.'
     );
 
-    // Automatically update slug as title is typed
     $effect(() => {
         if (!state.slugFixed) {
             state.slug = slugify(state.title);
         }
     });
 
-    // Save post on key press (Ctrl+S or Cmd+S)
-    function handleKeydown(event) {
+    const handleKeydown = (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key === 's') {
             event.preventDefault();
             savePost();
         }
-    }
-    setInterval(savePost, 30000);
-    
+    };
+
+   // setInterval(savePost, 30000);
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-<main >
-
-<div class="message">    
-<!-- Success/Error Messages -->
-{#if state.success}
-  <p style="color: green;">{state.success}</p>
-{/if}
-{#if state.error}
-  <p style="color: red;">{state.error}</p>
-{/if}
-</div>
-
-<h1>{state.postId ? 'Edit Post' : 'Create New Post'}</h1>
-
-<!-- Post Form -->
-<form  onsubmit={(e) => { e.preventDefault(); savePost(); }}>
-  
-    <button class="save" type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
-    
-    <label for="title">
-        <span>Title:</span>
-        <input class="h1"
-         id="title" type="text" 
-         bind:value={state.title} 
-         placeholder="Post Title Here" required />
-  
-    </label>
-    
-  
-    <label for="excerpt">
-        <span>Excerpt:</span>
-    <textarea
-        id="excerpt"
-        bind:value={state.excerpt}
-        placeholder="Short summary or introduction"
-        rows="3"
-    ></textarea>
-    </label>
-    
-
-    <label for="quill-container">
-        <span class="ql">Contents:</span>
-    <div id="quill-container" bind:this={quillContainer}  tabindex="0" role="textbox" aria-multiline="true" ></div>
-    </label>
-
-
-    <label for="slug">
-        <span>Slug:</span>
-    <input
-        id="slug"
-        type="text"
-        bind:value={state.slug}
-        oninput={() => (state.slugFixed = true)}
-        placeholder="Slug"
-        required
-    /></label>
-
-
-  
-    {#if state.postId}
-        <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Post</button>
-    {/if}
-</form>
-
-<!-- Confirmation Modal -->
-{#if state.showModal}
-  <div class="modal-backdrop">
-    <div class="modal">
-      <p>Are you sure you want to delete this post? This action cannot be undone.</p>
-      <button onclick={confirmDeletePost} style="background-color: #d9534f; color: white;">Yes, Delete</button>
-      <button onclick={closeModal} style="background-color: #f4f4f4; color: #555;">Cancel</button>
+<main>
+    <div class="message">
+        {#if state.success}
+            <p style="color: green;">{state.success}</p>
+        {/if}
+        {#if state.error}
+            <p style="color: red;">{state.error}</p>
+        {/if}
     </div>
-  </div>
-{/if}
+
+    <h1>{state.postId ? 'Edit Post' : 'Create New Post'}</h1>
+
+    <form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
+        <button class="save" type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
+
+        <label for="title">
+            <span>Title:</span>
+            <input class="h1" id="title" type="text" bind:value={state.title} placeholder="Post Title Here" required />
+        </label>
+
+        <label for="excerpt">
+            <span>Excerpt:</span>
+            <textarea id="excerpt" bind:value={state.excerpt} placeholder="Short summary" rows="3"></textarea>
+        </label>
+
+        <label for="quill-container">
+            <span class="ql">Contents:</span>
+            <div id="quill-container" bind:this={quillContainer} tabindex="0" role="textbox" aria-multiline="true"></div>
+        </label>
+
+        <label for="slug">
+            <span>Slug:</span>
+            <input id="slug" type="text" bind:value={state.slug} oninput={() => (state.slugFixed = true)} placeholder="Slug" required />
+        </label>
+
+        <button type="button" onclick={openModal}>Select Featured Image</button>
+        {#if state.featuredImageData}
+            <div class="thumbnail-preview">
+                <img
+                    src={`http://127.0.0.1:8090/api/files/${state.featuredImageData.collectionId}/${state.featuredImageData.id}/${state.featuredImageData.image}?thumb=300x300`}
+                    alt={state.altText}
+                />
+                <label>Alt Text:</label>
+                <input type="text" bind:value={state.altText} placeholder="Alt text" />
+                <label>Image Title:</label>
+                <input type="text" bind:value={state.imageTitle} placeholder="Image title" />
+            </div>
+        {/if}
+    </form>
+
+    <!-- Modal -->
+    {#if state.showModal}
+        <div class="modal-backdrop">
+            <div class="modal">
+                <h2>Select an Image</h2>
+                <div class="image-grid">
+                    {#each state.images as image}
+                        <button
+                            class="image-button"
+                            aria-label={`Select image: ${image.title || 'Untitled'}`}
+                            onclick={() => selectImage(image.id)}
+                        >
+                            <img 
+                                src={`http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}?thumb=300x300`} 
+                                alt={image.title || 'Image'} 
+                                class="image-item"
+                            />
+                        </button>
+                    {/each}
+                </div>
+                <button onclick={closeModal}>Close</button>
+            </div>
+        </div>
+    {/if}
 </main>
+
 <style>
+     .thumbnail-preview {
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .thumbnail-preview img {
+        width: 300px;
+        height: 300px;
+        object-fit: cover;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .thumbnail-preview input {
+        display: block;
+        margin: 0.5rem auto;
+        width: 80%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 1rem;
+    }
+
+    .image-item {
+        width: 100%;
+        height: auto;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border 0.3s;
+    }
+
+    .image-item:hover {
+        border: 2px solid #4CAF50;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        max-width: 600px;
+        width: 90%;
+    }
     main {
         display: flex;
         justify-content: center;
@@ -387,5 +482,4 @@ const savePost = () => {
     border-color: #8a4fff; /* Match the focus colour of inputs */
     box-shadow: 0 0 5px rgba(138, 79, 255, 0.5);
 }
-
 </style>

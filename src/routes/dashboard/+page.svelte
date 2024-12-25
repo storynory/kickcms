@@ -12,6 +12,8 @@
         try {
             const response = await pb.collection('posts').getList(1, 50, {
                 sort: '-created', // Fetch recent posts
+                expand: 'featuredImage', // Include full details of the featured image
+
             });
             allPosts = response.items; // Store all posts
             posts = allPosts; // Display all posts initially
@@ -103,7 +105,7 @@ onMount(() => {
         <Card 
           title={post.title}
           created={post.created}
-          featuredImage={post.featuredImage}
+          featuredImage={post.expand?.featuredImage} 
           alt={post.title}
           excerpt={post.excerpt}
           id={post.id}
@@ -197,5 +199,3 @@ onMount(() => {
    
 }
 </style>
-
-
