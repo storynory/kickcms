@@ -108,36 +108,43 @@
         state.showModal = false;
     };
 
-    // Select an image for either featured image or Quill
-    const selectImage = async (imageId) => {
-        try {
-            const imageData = await pb.collection('images').getOne(imageId);
-            const imageUrl = `http://127.0.0.1:8090/api/files/${imageData.collectionId}/${imageData.id}/${imageData.image}`;
+    const formatImageData = (image) => ({
+    url: `http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}?thumb=600x0`,
+    id: image.id,
+    title: image.title || 'Untitled',
+    alt: image.alt || '', // Include alt text in formatted data
+});
 
-            if (state.isQuillImagePicker) {
-                insertImageIntoQuill(imageUrl);
-            } else {
-                state.featuredImage = imageId;
-                state.featuredImageData = imageData;
-                state.altText = imageData.alt || '';
-                state.imageTitle = imageData.title || '';
-            }
+const selectImage = async (imageId) => {
+    try {
+        const imageData = await pb.collection('images').getOne(imageId);
+        const imageUrl = `http://127.0.0.1:8090/api/files/${imageData.collectionId}/${imageData.id}/${imageData.image}?thumb=600x0`;
 
-            closeModal();
-        } catch {
-            setFeedback('error', 'Failed to select image.');
-        }
-    };
-
-    // Insert image into Quill editor
-    const insertImageIntoQuill = (url) => {
-        const range = quill.getSelection();
-        if (range) {
-            quill.insertEmbed(range.index, 'image', url);
+        if (state.isQuillImagePicker) {
+            insertImageIntoQuill(imageUrl, imageData.alt);
         } else {
-            setFeedback('error', 'Select a position in the editor to insert the image.');
+            // Update featured image metadata and UI
+            state.featuredImage = imageId;
+            state.featuredImageData = imageData;
+            state.altText = imageData.alt || '';
+            state.imageTitle = imageData.title || '';
+            closeModal();
         }
-    };
+    } catch {
+        setFeedback('error', 'Failed to select image.');
+    }
+};
+const insertImageIntoQuill = (url, alt) => {
+    const range = quill.getSelection();
+    if (range) {
+        // Insert image HTML into Quill with alt and width
+        const imageHtml = `<img src="${url}" alt="${alt || ''}" width="600" />`;
+        quill.clipboard.dangerouslyPasteHTML(range.index, imageHtml);
+        closeModal();
+    } else {
+        setFeedback('error', 'Select a position in the editor to insert the image.');
+    }
+};
 
     // Save post
     const savePost = async () => {
