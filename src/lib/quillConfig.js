@@ -1,6 +1,6 @@
 export const quillOptions = {
     theme: 'snow',
-    placeholder: 'Write your category description here...',
+    placeholder: 'Write here...',
     modules: {
         toolbar: [
             [{ size: ['small', false, 'large', 'huge'] }], // Font sizes

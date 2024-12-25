@@ -1,7 +1,7 @@
 <script>
     import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
     import Card from "$lib/components/card.svelte";
-
+    import { onMount } from 'svelte';
     let posts = $state([]); // List of posts
     let allPosts = $state([]); // Full list of posts to filter from
     let error = ''; // Error message
@@ -46,7 +46,11 @@
     const debouncedSearch = debounce(performSearch, 100);
 
     // Fetch posts on component initialisation
+  
+onMount(() => {
     fetchPosts();
+});
+
 </script>
 <!-- Welcome Message -->
 {#if userState.user}

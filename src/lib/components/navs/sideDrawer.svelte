@@ -1,5 +1,5 @@
 <script>
-    
+      import { userState, logout } from '$lib/pocketbase.svelte.js';
     let isOpen = $state(false);
 
     const toggleDrawer = () => {
@@ -61,14 +61,16 @@
     }
     .menu-btn {
         position: fixed;
-        top: 6px;
+        top: 3px;
         left: 10px;
         background: none;
         border: none;
         color: white;
-        font-size: 2rem;
+        font-size: 32px;
         cursor: pointer;
         z-index: 110;
+        vertical-align: center;
+
     }
     .close-btn {
         background: none;

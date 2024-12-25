@@ -1,127 +1,141 @@
 <script>
-    import PocketBase from 'pocketbase';
+  
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { slugify } from '$lib/utils/slugify.js';
-    import { browser } from '$app/environment';
-    import {quillOptions} from "$lib/quillConfig.js"
-    import {state} from "$lib/shared.svelte.js"
-    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
-  
- 
-    
-        state.postId = null;
-        state.title = ''
-        state.slug =''
-        state.slugFixed = false
-        state.contents =''
-        state.error = ''
-        state.success = ''
-        state.showModal = false // Track modal visibility
-  
-
-    let quill; // Variable for Quill instance
-    let quillContainer; // Reference for Quill container - I think this would be the shared state
-
     import { page } from '$app/stores';
+    import { quillOptions } from "$lib/quillConfig.js";
+    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+   //import Editor from "$lib/components/quillEditor.svelte"
+  
+
+    const state = $state({
+        postId: null,
+        title: '',
+        slug: '',
+        slugFixed: false,
+        contents: '',
+        error: '',
+        success: '',
+        excerpt: "",
+        showModal: false // Track modal visibility
+    });
     const postId = $page.params.id;
+    let quillContainer; // Reference for Quill container
 
     onMount(async () => {
-    if (!browser) return;
+      const { default: Quill } = await import('quill');
+       let quill = new Quill(quillContainer, quillOptions);
+        // Update state contents on text change
+        quill.on('text-change', () => {
+            state.contents = quill.root.innerHTML;
+        });
 
-    const { default: Quill } = await import('quill');
-    const Delta = Quill.import('delta'); // Import Delta for custom clipboard behaviour
-    
-    quill = new Quill(quillContainer, quillOptions);
 
-  
+          // If editing an existing post, fetch and populate the data
+     if (postId !== 'new') {
+            try {
+                const post = await pb.collection('posts').getOne(postId);
+                state.postId = post.id;
+                state.title = post.title;
+                state.slug = post.slug;
+                state.contents = post.contents;
+                state.slugFixed = true;
+                state.excerpt = post.excerpt;
+                quill.root.innerHTML = post.contents;
+            } catch (err) {
+                setFeedback('error', 'Post not found.');
+            }
+        }
 
-    // Update state contents on text change
-    quill.on('text-change', () => {
-        state.contents = quill.root.innerHTML;
     });
 
-    // If editing an existing post, fetch and populate the data
-    if (postId !== 'new') {
+   
+
+    const setFeedback = (type, message) => {
+        state[type] = message;
+        setTimeout(() => (state[type] = ''), 3000); // Clear message after 3 seconds
+    };
+
+    const handleRequest = async (fn, successMessage, errorMessage) => {
         try {
-            const post = await pb.collection('posts').getOne(postId);
-            state.postId = post.id;
-            state.title = post.title;
-            state.slug = post.slug;
-            state.contents = post.contents;
-            state.slugFixed = true;
-            quill.root.innerHTML = state.contents;
+            await fn();
+            setFeedback('success', successMessage);
         } catch (err) {
-            console.error('Failed to fetch post:', err);
-            state.error = 'Post not found.';
-        }
-    }
-});
-
-    const savePost = async () => {
-        state.error = '';
-        state.success = '';
-
-        const data = {
-            title: state.title,
-            slug: state.slug,
-            contents: state.contents
-        };
-
-        try {
-            if (state.postId) {
-                await pb.collection('posts').update(state.postId, data);
-                state.success = 'Post updated successfully!';
-            } else {
-                const response = await pb.collection('posts').create(data);
-                state.postId = response.id;
-                state.success = 'Post created successfully!';
-            }
-        } catch (err) {
-            console.error('Failed to save post:', err);
-            state.error = 'Failed to save post.';
+            console.error(errorMessage, err);
+            setFeedback('error', errorMessage);
         }
     };
+
+
+ 
+
+let lastSavedState = {}; // To track the last saved post state
+
+const savePost = () => {
+    // Current state to compare
+    const currentState = {
+        title: state.title,
+        slug: state.slug,
+        contents: state.contents,
+        excerpt: state.excerpt,
+    };
+
+    // Check if the current state differs from the last saved state
+    if (JSON.stringify(currentState) !== JSON.stringify(lastSavedState))  {
+        handleRequest(
+            async () => {
+                if (state.postId) {
+                    await pb.collection('posts').update(state.postId, currentState);
+                } else {
+                    const createdPost = await pb.collection('posts').create(currentState);
+                    state.postId = createdPost.id;
+                }
+                lastSavedState = { ...currentState }; // Update the last saved state
+            },
+            'Post saved successfully!',
+            'Failed to save post.'
+        );
+    } else {
+        console.log("No changes detected, skipping save.");
+    }
+};
 
     // Modal-related functions
     const openModal = () => (state.showModal = true);
     const closeModal = () => (state.showModal = false);
 
-    const confirmDeletePost = async () => {
-        closeModal();
-        state.error = '';
-        state.success = '';
-
-        try {
+    const confirmDeletePost = () => handleRequest(
+        async () => {
             await pb.collection('posts').delete(state.postId);
-            state.success = 'Post deleted successfully!';
             goto('/dashboard');
-        } catch (err) {
-            console.error('Failed to delete post:', err);
-            state.error = 'Failed to delete post.';
+        },
+        'Post deleted successfully!',
+        'Failed to delete post.'
+    );
+
+    // Automatically update slug as title is typed
+    $effect(() => {
+        if (!state.slugFixed) {
+            state.slug = slugify(state.title);
         }
-    };
-
-        // Update slug as title is typed
-        $effect(() => {
-      if (!state.slugFixed) {
-        state.slug = slugify(state.title);
-      }
     });
-  
 
-    // add press key to save
+    // Save post on key press (Ctrl+S or Cmd+S)
     function handleKeydown(event) {
         if ((event.ctrlKey || event.metaKey) && event.key === 's') {
             event.preventDefault();
             savePost();
         }
     }
-  </script>
-  <svelte:window onkeydown={handleKeydown} />
+    setInterval(savePost, 30000);
+    
+</script>
 
-<h1>{state.postId ? 'Edit Post' : 'Create New Post'}</h1>
+<svelte:window onkeydown={handleKeydown} />
+<main >
 
+<div class="message">    
 <!-- Success/Error Messages -->
 {#if state.success}
   <p style="color: green;">{state.success}</p>
@@ -129,18 +143,44 @@
 {#if state.error}
   <p style="color: red;">{state.error}</p>
 {/if}
- <button type="button" onclick={() => goto('/dashboard')}>Back to dashboard</button>
-  
-<!-- Post Form -->
-<form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
-    <button type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
-     {#if state.postId}
-    <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Post</button>
-{/if}
-    <label for="title">Title:</label>
-    <input id="title" type="text" bind:value={state.title} placeholder="Post Title" required />
+</div>
 
-    <label for="slug">Slug:</label>
+<h1>{state.postId ? 'Edit Post' : 'Create New Post'}</h1>
+
+<!-- Post Form -->
+<form  onsubmit={(e) => { e.preventDefault(); savePost(); }}>
+  
+    <button class="save" type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
+    
+    <label for="title">
+        <span>Title:</span>
+        <input class="h1"
+         id="title" type="text" 
+         bind:value={state.title} 
+         placeholder="Post Title Here" required />
+  
+    </label>
+    
+  
+    <label for="excerpt">
+        <span>Excerpt:</span>
+    <textarea
+        id="excerpt"
+        bind:value={state.excerpt}
+        placeholder="Short summary or introduction"
+        rows="3"
+    ></textarea>
+    </label>
+    
+
+    <label for="quill-container">
+        <span class="ql">Contents:</span>
+    <div id="quill-container" bind:this={quillContainer}  tabindex="0" role="textbox" aria-multiline="true" ></div>
+    </label>
+
+
+    <label for="slug">
+        <span>Slug:</span>
     <input
         id="slug"
         type="text"
@@ -148,20 +188,13 @@
         oninput={() => (state.slugFixed = true)}
         placeholder="Slug"
         required
-    />
-
-    <label for="excerpt">Excerpt:</label>
-    <textarea
-        id="excerpt"
-        bind:value={state.excerpt}
-        placeholder="Short summary or introduction"
-        rows="3"
-    ></textarea>
-
-    <label for="contents">Contents:</label>
-    <div id="quill-container" bind:this={quillContainer}></div> <!-- Quill Container -->
+    /></label>
 
 
+  
+    {#if state.postId}
+        <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Post</button>
+    {/if}
 </form>
 
 <!-- Confirmation Modal -->
@@ -174,171 +207,185 @@
     </div>
   </div>
 {/if}
+</main>
+<style>
+    main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: #f9f9f9;
+    }
 
-  
-    <style>
-
- 
-
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    max-width: 800px;
-    width: 100%;
-    margin: 2rem auto;
-    background: #ffffff;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    border: 1px solid #eaeaea;
-   
-  }
-
-  label {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #444;
-    letter-spacing: 0.5px;
-  }
-
-  input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1.1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #fafafa;
-    transition: border-color 0.3s;
-    font-family: inherit;
-  }
-
-  input:focus {
-    border-color: #8a4fff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(138, 79, 255, 0.2);
-  }
-
-  #quill-container {
-    height: 350px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-    padding: 1rem;
-    font-size: 1.1rem;
-    font-family: 'Georgia', serif;
-  }
-
-  button {
-    padding: 0.75rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    letter-spacing: 0.5px;
-  }
-
-  button[type="submit"] {
-    background-color: #8a4fff;
-    color: #fff;
-    border: none;
-  }
-
-  button[type="submit"]:hover {
-    background-color: #6d3fcc;
-  }
-
-  button[type="button"] {
-    background: #f4f4f4;
-    color: #555;
-    border: 1px solid #ddd;
-  }
-
-  button[type="button"]:hover {
-    background: #e6e6e6;
-  }
-
-  p {
-    font-size: 1rem;
-    text-align: center;
-    margin: 0.5rem 0;
-  }
-
-  p[style="color: green;"] {
-    color: #2f8d46;
-    font-weight: 600;
-  }
-
-  p[style="color: red;"] {
-    color: #d9534f;
-    font-weight: 600;
-  }
-
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    h1 {
-      font-size: 2rem;
+    button.save {
+        margin-bottom: 2rem;
     }
 
     form {
-      padding: 2rem;
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    input, button {
-      font-size: 1rem;
+
+
+    label {
+        margin-bottom: 1rem;
     }
-  }
 
+    label > span {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0rem;
+    }
 
-  .modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+    span.ql {
+        padding-bottom: 0.5rem;
+        padding-top: 1rem;
+    }
+
+    input,
+    textarea,
+    #quill-container
+
+    {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    input.h1 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: centre;
+    }
+
+    #quill-container {
+        height: 350px;
+        font-size: 18px;
+   
+    }
+
+    button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-top: 1rem;
+    }
+
+    button[type="submit"] {
+        background-color: #8a4fff;
+        color: white;
+        border: none;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #6d3fcc;
+    }
+
+    button[type="button"] {
+        background: #f4f4f4;
+        color: #555;
+        border: 1px solid #ddd;
+    }
+
+    button[type="button"]:hover {
+        background: #e6e6e6;
+    }
+
+    p[style="color: green;"],
+    p[style="color: red;"] {
+        text-align: centre;
+        font-weight: bold;
+        margin-top: 1rem;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: centre;
+        align-items: centre;
+        z-index: 9999;
+    }
+
+    .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        text-align: centre;
+        width: 90%;
+        max-width: 400px;
+    }
+
+    .modal p {
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+        color: #444;
+    }
+
+    .modal button {
+        margin: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .modal button:first-child {
+        background-color: #d9534f;
+        color: white;
+        border: none;
+    }
+
+    .modal button:last-child {
+        background-color: #f4f4f4;
+        color: #555;
+        border: 1px solid #ddd;
+    }
+
+    .message {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    text-align: center;
 }
 
-.modal {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
+
+.message p {
+    margin: 0;
+    font-weight: bold;
+    font-size: 1rem;
 }
 
-.modal p {
-  margin-bottom: 1.5rem;
-  font-size: 1.2rem;
-  color: #444;
+#title {
+    text-align: center;
 }
 
-.modal button {
-  margin: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.modal button:first-child {
-  background-color: #d9534f;
-  color: white;
-  border: none;
-}
-
-.modal button:last-child {
-  background-color: #f4f4f4;
-  color: #555;
-  border: 1px solid #ddd;
+#quill-container.focused {
+    border-color: #8a4fff; /* Match the focus colour of inputs */
+    box-shadow: 0 0 5px rgba(138, 79, 255, 0.5);
 }
 
 </style>

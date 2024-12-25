@@ -1,7 +1,9 @@
 <script>
     import { userState, logout } from '$lib/pocketbase.svelte.js';
     import { goto } from '$app/navigation';
-
+    import UserIcon from "$lib/components/icons/user.svelte"
+    import HomeIcon from "$lib/components/icons/home.svelte"
+    import SocketIcon from "$lib/components/icons/socket.svelte"
     // Reactive state variables using runes API
     let showDropdown = $state(false); // Dropdown visibility state
 
@@ -27,23 +29,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
     {#if userState.user}
     <div class="nav-left">
         <a href="/dashboard" aria-label="Go to Dashboard">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true" 
-          >
-            <rect x="7" y="9" width="10" height="9" rx="2" ry="2"></rect>
-            <path d="M9 9V4"></path>
-            <path d="M15 9V4"></path>
-            <path d="M7 22h10"></path>
-          </svg>
+        <HomeIcon />
         </a>
       </div>
     
@@ -56,7 +42,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
             onclick={toggleDropdown}
             aria-expanded={showDropdown}
             aria-label="User menu"
-        >  
+        >  <UserIcon />
         </button>
         <span class="username">{username}</span>
         {#if showDropdown}
@@ -82,6 +68,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
         position: fixed;
        width: 100%;
        z-index: 99;
+       flex-wrap: wrap;
    
     }
 
