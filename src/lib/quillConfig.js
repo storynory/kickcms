@@ -2,13 +2,20 @@ export const quillOptions = {
     theme: 'snow',
     placeholder: 'Write here...',
     modules: {
-        toolbar: [
-            [{ size: ['small', false, 'large', 'huge'] }], // Font sizes
-            ['bold', 'italic', 'underline', 'strike'], // Formatting
-            [{ color: [] }, { background: [] }], // Text and background colours
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'], // Media
-            ['clean'], // Remove formatting
-        ],
+        toolbar: {
+            container: [
+                [{ size: ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'image'], // Image button
+                ['clean'],
+            ],
+            handlers: {
+                image: function () {
+                    // This will be overridden in the component
+                },
+            },
+        },
     },
 };

@@ -15,50 +15,160 @@
         error: '',
         success: '',
         excerpt: '',
-        featuredImage: null, // Stores the selected image ID
-        images: [], // Stores images for modal
-        featuredImageData: null, // Stores data for the featured image
+        featuredImage: null, // Featured image ID
+        images: [], // Images for modal
+        featuredImageData: null, // Featured image data
         showModal: false, // Modal visibility
-        altText: '', // Alt text for the featured image
-        imageTitle: '', // Title for the featured image
+        altText: '', // Featured image alt text
+        imageTitle: '', // Featured image title
+        isQuillImagePicker: false, // Track Quill vs. featured image modal
     });
 
     const postId = $page.params.id;
     let quillContainer;
+    let quill;
 
+    // Initialize Quill editor
     onMount(async () => {
         const { default: Quill } = await import('quill');
-        const quill = new Quill(quillContainer, quillOptions);
+        quill = new Quill(quillContainer, {
+            ...quillOptions,
+            modules: {
+                ...quillOptions.modules,
+                toolbar: {
+                    ...quillOptions.modules.toolbar,
+                    handlers: {
+                        image: () => openQuillImageModal(), // Quill image picker
+                    },
+                },
+            },
+        });
 
         quill.on('text-change', () => {
             state.contents = quill.root.innerHTML;
         });
 
         if (postId !== 'new') {
-            try {
-                const post = await pb.collection('posts').getOne(postId);
-                state.postId = post.id;
-                state.title = post.title;
-                state.slug = post.slug;
-                state.contents = post.contents;
-                state.slugFixed = true;
-                state.excerpt = post.excerpt;
-                state.featuredImage = post.featuredImage;
-
-                // Fetch featured image data if it exists
-                if (state.featuredImage) {
-                    const imageData = await pb.collection('images').getOne(state.featuredImage);
-                    state.featuredImageData = imageData;
-                    state.altText = imageData.alt || '';
-                    state.imageTitle = imageData.title || '';
-                }
-
-                quill.root.innerHTML = post.contents;
-            } catch (err) {
-                setFeedback('error', 'Post not found.');
-            }
+            await loadPostData(postId);
         }
     });
+
+    // Load post data and featured image
+    const loadPostData = async (postId) => {
+        try {
+            const post = await pb.collection('posts').getOne(postId);
+            state.postId = post.id;
+            state.title = post.title;
+            state.slug = post.slug;
+            state.contents = post.contents;
+            state.slugFixed = true;
+            state.excerpt = post.excerpt;
+            state.featuredImage = post.featuredImage;
+
+            if (state.featuredImage) {
+                const imageData = await pb.collection('images').getOne(state.featuredImage);
+                state.featuredImageData = imageData;
+                state.altText = imageData.alt || '';
+                state.imageTitle = imageData.title || '';
+            }
+
+            quill.root.innerHTML = post.contents;
+        } catch {
+            setFeedback('error', 'Post not found.');
+        }
+    };
+
+    
+
+    // Fetch and display images in modal
+    const fetchImages = async () => {
+        try {
+            state.images = await pb.collection('images').getFullList({ limit: 50 });
+        } catch {
+            setFeedback('error', 'Failed to load images.');
+        }
+    };
+
+    // Open modal for featured image
+    const openModal = async () => {
+        state.isQuillImagePicker = false;
+        state.showModal = true;
+        await fetchImages();
+    };
+
+    // Open modal for Quill image picker
+    const openQuillImageModal = async () => {
+        state.isQuillImagePicker = true;
+        state.showModal = true;
+        await fetchImages();
+    };
+
+    // Close the modal
+    const closeModal = () => {
+        state.showModal = false;
+    };
+
+    // Select an image for either featured image or Quill
+    const selectImage = async (imageId) => {
+        try {
+            const imageData = await pb.collection('images').getOne(imageId);
+            const imageUrl = `http://127.0.0.1:8090/api/files/${imageData.collectionId}/${imageData.id}/${imageData.image}`;
+
+            if (state.isQuillImagePicker) {
+                insertImageIntoQuill(imageUrl);
+            } else {
+                state.featuredImage = imageId;
+                state.featuredImageData = imageData;
+                state.altText = imageData.alt || '';
+                state.imageTitle = imageData.title || '';
+            }
+
+            closeModal();
+        } catch {
+            setFeedback('error', 'Failed to select image.');
+        }
+    };
+
+    // Insert image into Quill editor
+    const insertImageIntoQuill = (url) => {
+        const range = quill.getSelection();
+        if (range) {
+            quill.insertEmbed(range.index, 'image', url);
+        } else {
+            setFeedback('error', 'Select a position in the editor to insert the image.');
+        }
+    };
+
+    // Save post
+    const savePost = async () => {
+        const currentState = {
+            title: state.title,
+            slug: state.slug,
+            contents: state.contents,
+            excerpt: state.excerpt,
+            featuredImage: state.featuredImage,
+        };
+
+        await handleRequest(
+            async () => {
+                if (state.postId) {
+                    await pb.collection('posts').update(state.postId, currentState);
+                } else {
+                    const createdPost = await pb.collection('posts').create(currentState);
+                    state.postId = createdPost.id;
+                }
+
+                if (state.featuredImageData) {
+                    await pb.collection('images').update(state.featuredImage, {
+                        alt: state.altText,
+                        title: state.imageTitle,
+                    });
+                }
+            },
+            'Post saved successfully!',
+            'Failed to save post.'
+        );
+    };
 
     const setFeedback = (type, message) => {
         state[type] = message;
@@ -69,100 +179,10 @@
         try {
             await fn();
             setFeedback('success', successMessage);
-        } catch (err) {
-            console.error(errorMessage, err);
+        } catch {
             setFeedback('error', errorMessage);
         }
     };
-
-    let lastSavedState = {};
-
-    const savePost = async () => {
-        const currentState = {
-            title: state.title,
-            slug: state.slug,
-            contents: state.contents,
-            excerpt: state.excerpt,
-            featuredImage: state.featuredImage, // Save the featured image ID
-        };
-
-        if (JSON.stringify(currentState) !== JSON.stringify(lastSavedState)) {
-            await handleRequest(
-                async () => {
-                    if (state.postId) {
-                        await pb.collection('posts').update(state.postId, currentState);
-                    } else {
-                        const createdPost = await pb.collection('posts').create(currentState);
-                        state.postId = createdPost.id;
-                    }
-
-                    // Save updated featured image metadata
-                    if (state.featuredImageData) {
-                        await pb.collection('images').update(state.featuredImage, {
-                            alt: state.altText,
-                            title: state.imageTitle,
-                        });
-                    }
-
-                    lastSavedState = { ...currentState };
-                },
-                'Post saved successfully!',
-                'Failed to save post.'
-            );
-        } else {
-            console.log('No changes detected, skipping save.');
-        }
-    };
-
-    const openModal = async () => {
-        state.showModal = true;
-        try {
-            state.images = await pb.collection('images').getFullList({ limit: 50 });
-        } catch (err) {
-            setFeedback('error', 'Failed to load images.');
-        }
-    };
-
-    const closeModal = () => {
-        state.showModal = false;
-    };
-
-    const selectImage = async (imageId) => {
-        try {
-            const imageData = await pb.collection('images').getOne(imageId);
-            state.featuredImage = imageId;
-            state.featuredImageData = imageData;
-            state.altText = imageData.alt || '';
-            state.imageTitle = imageData.title || '';
-            closeModal();
-        } catch (err) {
-            setFeedback('error', 'Failed to select image.');
-        }
-    };
-
-    const confirmDeletePost = () => handleRequest(
-        async () => {
-            await pb.collection('posts').delete(state.postId);
-            goto('/dashboard');
-        },
-        'Post deleted successfully!',
-        'Failed to delete post.'
-    );
-
-    $effect(() => {
-        if (!state.slugFixed) {
-            state.slug = slugify(state.title);
-        }
-    });
-
-    const handleKeydown = (event) => {
-        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-            event.preventDefault();
-            savePost();
-        }
-    };
-
-   // setInterval(savePost, 30000);
 </script>
 
 <main>
