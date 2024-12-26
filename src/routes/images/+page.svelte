@@ -37,8 +37,15 @@
         alert("Error uploading the file. Please try again.");
       }
     }
+
+    function handleKeydown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        saveImage();
+      }
+    }
   </script>
-  
+    <svelte:window onkeydown={handleKeydown} />
   <h1>Image Gallery</h1>
   
   <!-- Upload Section -->

@@ -4,7 +4,7 @@
     import { slugify } from '$lib/utils/slugify.js';
     import { page } from '$app/stores';
     import { quillOptions } from '$lib/quillConfig.js';
-    import { pb } from '$lib/pocketbase.svelte.js';
+    import { pb, pblocation } from '$lib/pocketbase.svelte.js';
 
     const state = $state({
         postId: null,
@@ -109,7 +109,7 @@
     };
 
     const formatImageData = (image) => ({
-    url: `http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}?thumb=600x0`,
+    url: `${pblocation}/${image.collectionId}/${image.id}/${image.image}?thumb=600x0`,
     id: image.id,
     title: image.title || 'Untitled',
     alt: image.alt || '', // Include alt text in formatted data
@@ -118,7 +118,7 @@
 const selectImage = async (imageId) => {
     try {
         const imageData = await pb.collection('images').getOne(imageId);
-        const imageUrl = `http://127.0.0.1:8090/api/files/${imageData.collectionId}/${imageData.id}/${imageData.image}?thumb=600x0`;
+        const imageUrl = `${pblocation}/${imageData.collectionId}/${imageData.id}/${imageData.image}?thumb=600x0`;
 
         if (state.isQuillImagePicker) {
             insertImageIntoQuill(imageUrl, imageData.alt);
@@ -190,8 +190,14 @@ const insertImageIntoQuill = (url, alt) => {
             setFeedback('error', errorMessage);
         }
     };
+    function handleKeydown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        savePost ();
+      }
+    }
 </script>
-
+<svelte:window onkeydown={handleKeydown} />
 <main>
     <div class="message">
         {#if state.success}
@@ -392,7 +398,7 @@ const insertImageIntoQuill = (url, alt) => {
     }
 
     #quill-container {
-        height: 350px;
+        min-height: 350px;
         font-size: 18px;
    
     }
@@ -509,4 +515,11 @@ const insertImageIntoQuill = (url, alt) => {
     border-color: #8a4fff; /* Match the focus colour of inputs */
     box-shadow: 0 0 5px rgba(138, 79, 255, 0.5);
 }
+
+.ql-editor p {
+margin-bottom: 20px;
+}
+
+
+
 </style>

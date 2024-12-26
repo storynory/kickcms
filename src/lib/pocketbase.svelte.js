@@ -1,7 +1,8 @@
 import PocketBase from 'pocketbase';
 
 // Initialize PocketBase
-export const pb = new PocketBase('http://127.0.0.1:8090');
+export const pb = new PocketBase('https://content.socketcms.com');
+export const pblocation = ('https://content.socketcms.com/api/files/');
 
 // Reactive user state
 export const userState = $state({

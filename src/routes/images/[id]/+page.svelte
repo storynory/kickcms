@@ -1,8 +1,9 @@
 <script>
-    import { pb } from '$lib/pocketbase.svelte.js';
+
     import { page } from '$app/stores'; // Access route parameters
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte'; // Import onMount correctly
+    import { pb,pblocation, userState } from '$lib/pocketbase.svelte.js'; 
   
     const state = $state({
       imageId: null,
@@ -23,7 +24,7 @@
         state.imageId = image.id;
         state.title = image.title;
         state.alt = image.alt;
-        state.imageUrl = `http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}`;
+        state.imageUrl = `${pblocation}/${image.collectionId}/${image.id}/${image.image}`;
       } catch (err) {
         console.error('Failed to fetch image:', err);
         state.error = 'Image not found.';
@@ -76,7 +77,7 @@
     }
   </script>
   
-  <svelte:window on:keydown={handleKeydown} />
+  <svelte:window onkeydown={handleKeydown} />
   
   <h1>{state.imageId ? 'Edit Image' : 'Image Not Found'}</h1>
   
