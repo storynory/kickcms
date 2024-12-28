@@ -237,7 +237,7 @@ const insertImageIntoQuill = (url, alt) => {
         {#if state.featuredImageData}
             <div class="thumbnail-preview">
                 <img
-                    src={`http://127.0.0.1:8090/api/files/${state.featuredImageData.collectionId}/${state.featuredImageData.id}/${state.featuredImageData.image}?thumb=300x300`}
+                    src={`${pblocation}/${state.featuredImageData.collectionId}/${state.featuredImageData.id}/${state.featuredImageData.image}?thumb=300x300`}
                     alt={state.altText}
                 />
                 <label>Alt Text:</label>
@@ -261,7 +261,7 @@ const insertImageIntoQuill = (url, alt) => {
                             onclick={() => selectImage(image.id)}
                         >
                             <img 
-                                src={`http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}?thumb=300x300`} 
+                                src={`${pblocation}/${image.collectionId}/${image.id}/${image.image}?thumb=300x300`} 
                                 alt={image.title || 'Image'} 
                                 class="image-item"
                             />

@@ -1,5 +1,6 @@
 <script>
-    import { pb } from '$lib/pocketbase.svelte.js';
+   import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+  
   
     let images = $props();
     let pics = $state(images.data.props.images);
@@ -62,7 +63,7 @@
           <a href={`/images/${image.id}`}>
             <div class="image-container">
               <img 
-                src={`http://127.0.0.1:8090/api/files/${image.collectionId}/${image.id}/${image.image}?thumb=300x300`} 
+                src={`${imageresize}/300/${image.id}/${image.image}`} 
                 alt={image.alt || image.title || 'Image'} 
                 loading="lazy" 
               />

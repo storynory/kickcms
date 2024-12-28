@@ -1,7 +1,8 @@
 import PocketBase from 'pocketbase';
-
+import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+  
 export async function GET({ fetch }) {
-  const pb = new PocketBase('http://127.0.0.1:8090');
+
 
   try {
     // Fetch the images using PocketBase and pass fetch explicitly

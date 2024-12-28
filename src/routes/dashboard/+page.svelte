@@ -1,5 +1,5 @@
 <script>
-    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+    import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
     import Card from "$lib/components/card.svelte";
     import { onMount } from 'svelte';
     let posts = $state([]); // List of posts

@@ -1,6 +1,6 @@
 <script>
     import { formatFriendlyDate } from "$lib/utils/dateFormater.js";
-
+    import { pb,pblocation,imageresize  } from '$lib/pocketbase.svelte.js'; 
     // Props passed to the component
     let { 
         title = '', 
@@ -17,7 +17,7 @@
         {#if featuredImage.collectionId}
         <a href="/posts/{id}">
         <img 
-        src={`http://127.0.0.1:8090/api/files/${featuredImage.collectionId}/${featuredImage.id}/${featuredImage.image}?thumb=300x300`} 
+        src={`${imageresize}/sq/300/${featuredImage.id}/${featuredImage.image}`} 
         alt={featuredImage.alt || alt || title || 'Image'} 
         loading="lazy" 
       />
@@ -74,82 +74,5 @@
   outline-offset: 2px;
 }
 
-.svg-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-
-/* Posts Grid */
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin: 0 auto;
-  max-width: 1200px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  h1 {
-    font-size: 2rem;
-  }
-
-
-}
-
-/* Page Styling */
-
-/* Center the search container */
-.search-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2rem auto;
-    max-width: 700px;
-    width: 100%;
-}
-
-/* Modern Search Input */
-.search-input {
-    flex: 1;
-    padding: 1rem;
-    font-size: 1.25rem;
-    border: 2px solid #ddd;
-    border-radius: 50px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    outline: none;
-    transition: all 0.3s ease-in-out;
-    max-width: 500px;
-}
-
-/* Focus Effect */
-.search-input:focus {
-    border-color: #0078ff;
-    box-shadow: 0 0 10px rgba(0, 120, 255, 0.5);
-}
-
-/* Placeholder Text */
-.search-input::placeholder {
-    color: #aaa;
-    font-style: italic;
-}
-
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .search-container {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .search-input
-  {
-        width: 100%;
-    }
-
-   
-}
 </style>

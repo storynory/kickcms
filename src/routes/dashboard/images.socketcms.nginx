@@ -1,0 +1,91 @@
+server {
+    #this is only server on port 80 redirects all to 443 https maybe won't work with cloudflare
+    listen 80 default_server;
+
+    server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
+
+# Expires map
+map $sent_http_content_type $expires {
+    default off;
+    text/html epoch;
+    text/css max;
+    application/javascript max;
+    ~image/ max;
+}
+
+
+server {
+
+    server_name images.socketcms.com;
+    include mime.types;
+    expires $expires;
+
+    #charset koi8-r;
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root /home/sadie/www/storystatic/img;
+        index index.html index.htm;
+    }
+
+
+ location /depo/ {
+        proxy_pass http://127.0.0.1:6767;
+    }
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /homes/sadie/www/storystatic/img;
+    }
+
+
+
+
+
+    # The new section you can copy/paste in
+    location ~ "^/media/(?<width>\d+)/(?<image>.+)$" {
+        alias /home/sadie/www/storystatic/img/$image;
+        image_filter resize $width -;
+        image_filter_jpeg_quality 100;
+        image_filter_webp_quality 100;
+        image_filter_buffer 8M;
+    }
+}
+
+
+
+
+# Cache settings
+
+proxy_cache_path /tmp/nginx-images-cache/
+    levels=1:2
+    keys_zone=images:10m
+    inactive=24h
+    max_size=100m;
+
+# Your other server
+server {
+
+    include mime.types;
+    # Whatever other rules your server has are here
+    # Like certs, other locations, etc.
+
+    # Pass requests to your resizing server
+    location ~ "^/media/(?<width>(640|320|800))/(?<image>.+)$" {
+        proxy_pass https://localhost:8888/media/$width/$image;
+        proxy_cache images;
+        proxy_cache_valid 200 24h;
+    }
+
+    # I got this from one of the tutorials, apparently it helps avoid the error
+    # "no resolver defined to resolve localhost"
+    location /media {
+        proxy_pass https://localhost:8888/;
+    }
+}

@@ -3,8 +3,16 @@
     import { page } from '$app/stores'; // Access route parameters
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte'; // Import onMount correctly
-    import { pb,pblocation, userState } from '$lib/pocketbase.svelte.js'; 
+    import { pb,pblocation, userState,imageresize  } from '$lib/pocketbase.svelte.js'; 
   
+
+    let props = $props();
+
+   // console.log ("hello from image edit page ", props.data.title)
+
+
+
+
     const state = $state({
       imageId: null,
       title: '',
@@ -18,18 +26,13 @@
     const params = $page.params; // Get route parameters dynamically
   
     // Fetch image details on mount
-    onMount(async () => {
-      try {
-        const image = await pb.collection('images').getOne(params.id);
+  
+        const image = props.data
         state.imageId = image.id;
         state.title = image.title;
         state.alt = image.alt;
-        state.imageUrl = `${pblocation}/${image.collectionId}/${image.id}/${image.image}`;
-      } catch (err) {
-        console.error('Failed to fetch image:', err);
-        state.error = 'Image not found.';
-      }
-    });
+        state.imageUrl = `${imageresize }/800/${image.id}/${image.file}`;
+     
   
     const saveImage = async () => {
       state.error = '';
@@ -79,7 +82,7 @@
   
   <svelte:window onkeydown={handleKeydown} />
   
-  <h1>{state.imageId ? 'Edit Image' : 'Image Not Found'}</h1>
+  <h1>{state.imageId ? 'Image Details' : 'Image Not Found'}</h1>
   
   <!-- Success/Error Messages -->
   {#if state.success}
@@ -90,8 +93,15 @@
   {/if}
   
   {#if state.imageId}
+  <figure>
     <img src={state.imageUrl} alt={state.alt || 'Image'} style="max-width: 100%; height: auto; margin-bottom: 20px;" />
-  
+  </figure>
+
+  <h2>Medium</h2>
+ 
+
+  <img src="{imageresize}/500/{image.id}/{image.file}" alt="state.alt" />
+
     <!-- Form -->
     <form onsubmit={(e) => { e.preventDefault(); saveImage(); }}>
       <label for="title">Title:</label>
@@ -119,7 +129,13 @@
   
   <style>
 
+    figure{
+       max-width: 800px;
+       margin: auto;
 
+     }
+
+    
     .modal-backdrop {
       position: fixed;
       top: 0;
@@ -207,15 +223,7 @@
         box-shadow: 0 0 5px rgba(138, 79, 255, 0.2);
       }
     
-      #quill-container {
-        height: 350px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fafafa;
-        padding: 1rem;
-        font-size: 1.1rem;
-        font-family: 'Georgia', serif;
-      }
+     
     
       button {
         padding: 0.75rem 2rem;

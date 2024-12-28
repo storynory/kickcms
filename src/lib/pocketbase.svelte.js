@@ -3,6 +3,7 @@ import PocketBase from 'pocketbase';
 // Initialize PocketBase
 export const pb = new PocketBase('https://content.socketcms.com');
 export const pblocation = ('https://content.socketcms.com/api/files/');
+export const imageresize = ('https://content.socketcms.com/images')
 
 // Reactive user state
 export const userState = $state({
