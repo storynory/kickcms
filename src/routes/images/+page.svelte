@@ -8,7 +8,7 @@
     let gridimages = images.data.props.images;
     searchdata.pics = gridimages;
     $inspect(searchdata.pics)
-    searchdata.query = "initial query";
+    searchdata.query = "";
 
   // Perform search on posts
   const performSearch = () => {
@@ -81,7 +81,7 @@
     <button onclick={uploadFile}>Upload</button>
   </div>
   <h1>Image Gallery</h1>
-  {searchdata.query}
+
   <div class="page-width search-container -p-lg">
     <input
     bind:value={searchdata.query}
