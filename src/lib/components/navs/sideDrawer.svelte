@@ -20,7 +20,6 @@
     <nav>
         <ul>
        <li><a href="/dashboard">Dashboard</a></li>
-       <li><a href="/search">Posts</a></li>
         <li><a href="/posts/new">New Post</a></li>
         <li><a href="/images">Images</a></li>
         <li><a href="/categories">Categories</a></li>

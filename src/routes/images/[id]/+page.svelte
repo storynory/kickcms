@@ -1,88 +1,46 @@
 <script>
-
-    import { page } from '$app/stores'; // Access route parameters
     import { goto } from '$app/navigation';
-    import { onMount } from 'svelte'; // Import onMount correctly
-    import { pb,pblocation, userState,imageresize  } from '$lib/pocketbase.svelte.js'; 
-  
-
+    import { imageresize,imagesq, } from '$lib/images.js'; 
+    import {state} from "./imagestate.svelte.js"
+    import {saveImage, confirmDeleteImage} from "./helpers.js"
     let props = $props();
-
-   // console.log ("hello from image edit page ", props.data.title)
-
-
-
-
-    const state = $state({
-      imageId: null,
-      title: '',
-      alt: '',
-      error: '',
-      success: '',
-      showModal: false, // Track modal visibility
-      imageUrl: ''
-    });
+    const image = props.data
   
-    const params = $page.params; // Get route parameters dynamically
-  
-    // Fetch image details on mount
-  
-        const image = props.data
-        state.imageId = image.id;
-        state.title = image.title;
-        state.alt = image.alt;
-        state.imageUrl = `${imageresize }/800/${image.id}/${image.file}`;
+
+// set initial information from props
+
+      state.title = image.title
+      state.alt = image.alt
+      state.error = '',
+      state.success = '',
+      state.showModal = false;
      
-  
-    const saveImage = async () => {
-      state.error = '';
-      state.success = '';
-  
-      const data = {
+  // Derived state for `data` to use in save function
+ 
+  let data = $derived(
+    {
         title: state.title,
         alt: state.alt
-      };
-  
-      try {
-        if (state.imageId) {
-          await pb.collection('images').update(state.imageId, data);
-          state.success = 'Image updated successfully!';
-        }
-      } catch (err) {
-        console.error('Failed to save image:', err);
-        state.error = 'Failed to save image.';
-      }
-    };
-  
+    }
+ );
+   
+
+  // the delete modal to confrim delte
     const openModal = () => (state.showModal = true);
     const closeModal = () => (state.showModal = false);
   
-    const confirmDeleteImage = async () => {
-      closeModal();
-      state.error = '';
-      state.success = '';
-  
-      try {
-        await pb.collection('images').delete(state.imageId);
-        state.success = 'Image deleted successfully!';
-        goto('/images');
-      } catch (err) {
-        console.error('Failed to delete image:', err);
-        state.error = 'Failed to delete image.';
-      }
-    };
-  
+  // save from keyboard
     function handleKeydown(event) {
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
-        saveImage();
+        saveImage(image.id, data);
       }
     }
   </script>
   
   <svelte:window onkeydown={handleKeydown} />
   
-  <h1>{state.imageId ? 'Image Details' : 'Image Not Found'}</h1>
+  <h1>{image.id? 'Image Details' : 'Image Not Found'}</h1>
   
   <!-- Success/Error Messages -->
   {#if state.success}
@@ -92,24 +50,41 @@
     <p style="color: red;">{state.error}</p>
   {/if}
   
-  {#if state.imageId}
+  {#if image.id}
   <figure>
-    <img src={state.imageUrl} alt={state.alt || 'Image'} style="max-width: 100%; height: auto; margin-bottom: 20px;" />
+    <header>
+        <h2>600 Width</h2>
+      </header>
+    <img src="{imageresize}/600/{image.id}/{image.file}" alt="{state.alt}" /> 
+    <figcaption>{state.title}</figcaption>
   </figure>
 
-  <h2>Medium</h2>
  
-
-  <img src="{imageresize}/500/{image.id}/{image.file}" alt="state.alt" />
-
+  <figure>
+    <header>
+     <h2>300 Square</h2>
+    </header>
+    <img src="{imagesq}/300/{image.id}/{image.file}" alt="{state.alt}" />
+    <figcaption>{state.title}</figcaption>
+  </figure>
+  
     <!-- Form -->
-    <form onsubmit={(e) => { e.preventDefault(); saveImage(); }}>
+    <form onsubmit={(e) => { e.preventDefault();   saveImage(image.id, data); }}>
       <label for="title">Title:</label>
       <input id="title" type="text" bind:value={state.title} placeholder="Image Title" required />
   
       <label for="alt">Alt Text:</label>
       <input id="alt" type="text" bind:value={state.alt} placeholder="Alt Text" />
   
+      {#if state.success}
+      <p style="color: green;">{state.success}</p>
+    {/if}
+    {#if state.error}
+      <p style="color: red;">{state.error}</p>
+    {/if}
+    
+
+
       <button type="submit">Save Changes</button>
       <button type="button" onclick={() => goto('/images')}>Back to Gallery</button>
       <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Image</button>
@@ -121,7 +96,7 @@
     <div class="modal-backdrop">
       <div class="modal">
         <p>Are you sure you want to delete this image? This action cannot be undone.</p>
-        <button onclick={confirmDeleteImage} style="background-color: #d9534f; color: white;">Yes, Delete</button>
+        <button onclick={confirmDeleteImage(image.id)} style="background-color: #d9534f; color: white;">Yes, Delete</button>
         <button onclick={closeModal} style="background-color: #f4f4f4; color: #555;">Cancel</button>
       </div>
     </div>
@@ -129,12 +104,25 @@
   
   <style>
 
-    figure{
-       max-width: 800px;
-       margin: auto;
+figure {
+    max-width: 800px;
+    margin: auto;
+    display: block; /* Use inline-block to keep the figure centered without flexbox */
+    text-align: center; /* Ensures text inside figcaption is centered */
+}
 
-     }
+figure img {
+    display: block; /* Prevents inline spacing issues with images */
+    margin: 0 auto; /* Centers the image */
+}
 
+figcaption {
+    margin-top: 8px; /* Adds spacing between image and caption */
+    font-size: 0.9rem; /* Optional: Adjust the font size for the caption */
+    color: #555; /* Optional: Style the caption text */
+}
+
+    
     
     .modal-backdrop {
       position: fixed;

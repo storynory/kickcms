@@ -1,9 +1,29 @@
 <script>
-   import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
-  
-  
+   import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
+   import { imageresize,imagesq } from '$lib/images.js';
+   import { searchdata} from './sharedimages.svelte.js';
+
     let images = $props();
-    let pics = $state(images.data.props.images);
+    
+    let gridimages = images.data.props.images;
+    searchdata.pics = gridimages;
+    $inspect(searchdata.pics)
+    searchdata.query = "initial query";
+
+  // Perform search on posts
+  const performSearch = () => {
+        if (searchdata.query.trim() === '') {
+            searchdata.pics = gridimages;
+        } else {
+            searchdata.pics = gridimages.filter(
+                post =>
+                    post.title.toLowerCase().includes( searchdata.query.toLowerCase())
+                 
+            );
+        }
+    };
+
+ 
   
     let selectedFile = null;
   
@@ -31,39 +51,58 @@
         }
   
         const newImage = await pb.collection('images').create(formData);
-        pics = [newImage, ...pics]; // Add the new image to the top
+        searchdata.pics = [newImage, ...searchdata.pics]; // Add the new image to the top
         selectedFile = null;
       } catch (error) {
         console.error('Error uploading file:', error);
         alert("Error uploading the file. Please try again.");
       }
     }
-
-    function handleKeydown(event) {
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault();
-        saveImage();
-      }
+ // Debounced search function
+ function debounce(func, delay) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => func.apply(this, args), delay);
+        };
     }
+
+    const debouncedSearch = debounce(performSearch, 100);
+
+  
   </script>
-    <svelte:window onkeydown={handleKeydown} />
-  <h1>Image Gallery</h1>
+
+
+  
   
   <!-- Upload Section -->
   <div class="upload-section">
     <input type="file" accept="image/*" onchange={onFileSelect} />
     <button onclick={uploadFile}>Upload</button>
   </div>
-  
+  <h1>Image Gallery</h1>
+  {searchdata.query}
+  <div class="page-width search-container -p-lg">
+    <input
+    bind:value={searchdata.query}
+  class="search-input"
+    type="text"
+    name="q"
+    placeholder="Search images"
+    aria-label="Search"
+    oninput={debouncedSearch } 
+  />
+  </div>
+
   <!-- Display images -->
-  {#if pics.length > 0}
+  {#if searchdata.pics.length > 0}
     <div class="gallery">
-      {#each pics as image}
+      {#each searchdata.pics as image}
         <div class="gallery-item">
           <a href={`/images/${image.id}`}>
             <div class="image-container">
               <img 
-                src={`${imageresize}/300/${image.id}/${image.image}`} 
+                src="{imagesq}/300/{image.id}/{image.image}"
                 alt={image.alt || image.title || 'Image'} 
                 loading="lazy" 
               />
@@ -91,7 +130,6 @@
   
     .upload-section {
       text-align: center;
-      margin-bottom: 20px;
     }
   
     .upload-section input {
@@ -136,6 +174,7 @@
       overflow: hidden;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
+      max-width: 300px;
     }
   
     .gallery-item:hover {
@@ -147,6 +186,7 @@
       position: relative;
       overflow: hidden;
       aspect-ratio: 1; /* Ensures images are square */
+  
     }
   
     .image-container img {
@@ -171,4 +211,37 @@
       font-size: 0.9rem;
       color: #666;
     }
+
+
+    /* Modern Search Input */
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Optional: Aligns items horizontally */
+}
+
+.search-input {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1.25rem;
+    border: 2px solid #ddd;
+    border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    max-width: 500px;
+}
+
+/* Focus Effect */
+.search-input:focus {
+    border-color: #0078ff;
+    box-shadow: 0 0 10px rgba(0, 120, 255, 0.5);
+}
+
+/* Placeholder Text */
+.search-input::placeholder {
+    color: #aaa;
+    font-style: italic;
+}
+
   </style>
