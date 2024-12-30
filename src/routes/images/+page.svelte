@@ -1,30 +1,71 @@
 <script>
    import { pb, userState } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
    import { imageresize,imagesq } from '$lib/images.js';
-   import { searchdata} from './sharedimages.svelte.js';
-
+   import { searchdata} from './sharedImages.svelte.js';
+   import Pagination from "./ImagePaginate.svelte"
+   import Fuse from 'fuse.js';
+ // import {performSearch } from './imageHelpers.js';
+    searchdata.pagenum = 1;
     let images = $props();
     
-    let gridimages = images.data.props.images;
+    let gridimages = images.data.images.items;
     searchdata.pics = gridimages;
-    $inspect(searchdata.pics)
+    // $inspect("images page", images.data)
     searchdata.query = "";
+    searchdata.pageInfo = images.data.images;
 
   // Perform search on posts
-  const performSearch = () => {
-        if (searchdata.query.trim() === '') {
-            searchdata.pics = gridimages;
-        } else {
-            searchdata.pics = gridimages.filter(
-                post =>
-                    post.title.toLowerCase().includes( searchdata.query.toLowerCase())
-                 
-            );
-        }
-    };
-
  
-  
+ 
+  const performSearch = async () => {
+    try {
+        if (searchdata.query.trim() === '') {
+            // Reset to grid images when the search query is empty
+            if (!Array.isArray(gridimages)) {
+                console.error("Error: gridimages is not defined or is not an array");
+                searchdata.pics = []; // Fallback to an empty array
+            } else {
+                searchdata.pics = gridimages;
+            }
+        } else {
+            // Fetch all posts from the "images" collection
+            let allposts = await pb.collection('images').getFullList({
+                sort: '-created',
+            });
+
+            // Extract relevant fields for Fuse.js
+            let allpics = allposts.map(post => ({
+                title: post.title,    // Extract the title field
+                alt: post.alt,        // Extract the alt field
+                image: post.image,    // Extract the image field (image filename)
+                id: post.id           // Optionally include the ID for reference
+            }));
+
+            // Initialise Fuse.js with options
+            const fuse = new Fuse(allpics, {
+                keys: ['title', 'alt'], // Search on title and alt fields
+                threshold: 0.3,         // Adjust fuzziness level (lower is stricter)
+            });
+
+            // Perform the search and map results
+            const searchResults = fuse.search(searchdata.query).map(result => result.item);
+
+            if (searchResults.length === 0) {
+                console.warn("No matches found for the search query");
+                searchdata.pics = gridimages; // Set to an empty array for no matches
+            } else {
+                searchdata.pics = searchResults;
+            }
+        }
+    } catch (error) {
+        console.error("Error performing search:", error);
+        searchdata.pics = []; // Fallback to an empty array on error
+    }
+};
+
+// Call the function
+performSearch();
+
     let selectedFile = null;
   
     // Handle file selection
@@ -94,8 +135,13 @@
   />
   </div>
 
+
   <!-- Display images -->
-  {#if searchdata.pics.length > 0}
+{#if searchdata.pics.length > 0}
+
+<Pagination initialImages={images}/>
+
+
     <div class="gallery">
       {#each searchdata.pics as image}
         <div class="gallery-item">

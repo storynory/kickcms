@@ -1,33 +1,33 @@
 <script>
     import { goto } from '$app/navigation';
     import { imageresize,imagesq, } from '$lib/images.js'; 
-    import {state} from "./imagestate.svelte.js"
-    import {saveImage, confirmDeleteImage} from "./helpers.js"
+    import {imageData} from "../sharedImages.svelte.js"
+    import {saveImage, confirmDeleteImage} from "../imageHelpers.js"
     let props = $props();
     const image = props.data
   
 
 // set initial information from props
 
-      state.title = image.title
-      state.alt = image.alt
-      state.error = '',
-      state.success = '',
-      state.showModal = false;
+      imageData.title = image.title
+      imageData.alt = image.alt
+      imageData.error = '',
+      imageData.success = '',
+      imageData.showModal = false;
      
-  // Derived state for `data` to use in save function
+  // Derived imageData for `data` to use in save function
  
   let data = $derived(
     {
-        title: state.title,
-        alt: state.alt
+        title: imageData.title,
+        alt: imageData.alt
     }
  );
    
 
   // the delete modal to confrim delte
-    const openModal = () => (state.showModal = true);
-    const closeModal = () => (state.showModal = false);
+    const openModal = () => (imageData.showModal = true);
+    const closeModal = () => (imageData.showModal = false);
   
   // save from keyboard
     function handleKeydown(event) {
@@ -43,11 +43,11 @@
   <h1>{image.id? 'Image Details' : 'Image Not Found'}</h1>
   
   <!-- Success/Error Messages -->
-  {#if state.success}
-    <p style="color: green;">{state.success}</p>
+  {#if imageData.success}
+    <p style="color: green;">{imageData.success}</p>
   {/if}
-  {#if state.error}
-    <p style="color: red;">{state.error}</p>
+  {#if imageData.error}
+    <p style="color: red;">{imageData.error}</p>
   {/if}
   
   {#if image.id}
@@ -55,8 +55,8 @@
     <header>
         <h2>600 Width</h2>
       </header>
-    <img src="{imageresize}/600/{image.id}/{image.file}" alt="{state.alt}" /> 
-    <figcaption>{state.title}</figcaption>
+    <img src="{imageresize}/600/{image.id}/{image.file}" alt="{imageData.alt}" /> 
+    <figcaption>{imageData.title}</figcaption>
   </figure>
 
  
@@ -64,23 +64,23 @@
     <header>
      <h2>300 Square</h2>
     </header>
-    <img src="{imagesq}/300/{image.id}/{image.file}" alt="{state.alt}" />
-    <figcaption>{state.title}</figcaption>
+    <img src="{imagesq}/300/{image.id}/{image.file}" alt="{imageData.alt}" />
+    <figcaption>{imageData.title}</figcaption>
   </figure>
   
     <!-- Form -->
     <form onsubmit={(e) => { e.preventDefault();   saveImage(image.id, data); }}>
       <label for="title">Title:</label>
-      <input id="title" type="text" bind:value={state.title} placeholder="Image Title" required />
+      <input id="title" type="text" bind:value={imageData.title} placeholder="Image Title" required />
   
       <label for="alt">Alt Text:</label>
-      <input id="alt" type="text" bind:value={state.alt} placeholder="Alt Text" />
+      <input id="alt" type="text" bind:value={imageData.alt} placeholder="Alt Text" />
   
-      {#if state.success}
-      <p style="color: green;">{state.success}</p>
+      {#if imageData.success}
+      <p style="color: green;">{imageData.success}</p>
     {/if}
-    {#if state.error}
-      <p style="color: red;">{state.error}</p>
+    {#if imageData.error}
+      <p style="color: red;">{imageData.error}</p>
     {/if}
     
 
@@ -92,7 +92,7 @@
   {/if}
   
   <!-- Confirmation Modal -->
-  {#if state.showModal}
+  {#if imageData.showModal}
     <div class="modal-backdrop">
       <div class="modal">
         <p>Are you sure you want to delete this image? This action cannot be undone.</p>

@@ -1,6 +1,6 @@
 import { pb, pblocation, userState, imageresize } from '$lib/pocketbase.svelte.js';
 import { error } from '@sveltejs/kit';
-import {state} from "./imagestate.svelte.js"
+
 
   
   

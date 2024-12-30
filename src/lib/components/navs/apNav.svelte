@@ -3,6 +3,7 @@
     import { goto } from '$app/navigation';
     import UserIcon from "$lib/components/icons/user.svelte"
     import HomeIcon from "$lib/components/icons/home.svelte"
+     import ImageIcon from "$lib/components/icons/iconImage.svelte"
     import SocketIcon from "$lib/components/icons/socket.svelte"
     // Reactive state variables using runes API
     let showDropdown = $state(false); // Dropdown visibility state
@@ -32,6 +33,9 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
         <HomeIcon />
         </a>
       </div>
+        <a href="/images" aria-label="Go to images">
+        <ImageIcon />
+        </a>
     
 
     {/if}

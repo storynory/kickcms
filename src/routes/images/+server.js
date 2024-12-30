@@ -1,17 +1,11 @@
-import PocketBase from 'pocketbase';
-import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
-  
-export async function GET({ fetch }) {
-
-
+export async function GET({ locals }) {
   try {
-    // Fetch the images using PocketBase and pass fetch explicitly
-    const images = await pb.collection('images').getFullList(
-      {
+    const result = await locals.pb.collection('images').getList(1, 5, {
         sort: '-created',
-      },
-      { fetch } // Pass the custom fetch function here
-    );
+    });
+   console.log("images server.js totalItems:", result.totalItems)
+    // Extract the items array to match the getFullList format
+    const images = result;
 
     // Return JSON response
     return new Response(JSON.stringify({ images }), {

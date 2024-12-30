@@ -19,7 +19,9 @@
         <img 
         src={`${imageresize}/sq/300/${featuredImage.id}/${featuredImage.image}`} 
         alt={featuredImage.alt || alt || title || 'Image'} 
-        loading="lazy" 
+        width=300
+        height=300
+
       />
     </a>
         {:else}
