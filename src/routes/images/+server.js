@@ -6,6 +6,7 @@ export async function GET({ locals }) {
    console.log("images server.js totalItems:", result.totalItems)
     // Extract the items array to match the getFullList format
     const images = result;
+    
 
     // Return JSON response
     return new Response(JSON.stringify({ images }), {

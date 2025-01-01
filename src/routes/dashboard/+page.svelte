@@ -2,8 +2,13 @@
     import { pb, userState,imageresize  } from '$lib/pocketbase.svelte.js'; // Import PocketBase instance and user state
     import Card from "$lib/components/card.svelte";
     import { onMount } from 'svelte';
-    let posts = $state([]); // List of posts
-    let allPosts = $state([]); // Full list of posts to filter from
+   // let posts = $state([]); // List of posts
+    let data = $props();// Full list of posts to filter from
+    //$inspect("posts:", posts.data.posts)
+    let  posts = $state()
+    posts = data.data.posts.posts
+    $inspect(posts)
+  
     let error = ''; // Error message
     let query = $state(''); // Search query
 
@@ -47,11 +52,6 @@
 
     const debouncedSearch = debounce(performSearch, 100);
 
-    // Fetch posts on component initialisation
-  
-onMount(() => {
-    fetchPosts();
-});
 
 </script>
 <!-- Welcome Message -->

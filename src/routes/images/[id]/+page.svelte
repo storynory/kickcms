@@ -55,7 +55,7 @@
     <header>
         <h2>600 Width</h2>
       </header>
-    <img src="{imageresize}/600/{image.id}/{image.file}" alt="{imageData.alt}" /> 
+    <img src="{imageresize}/600/{image.id}/{image.file}" alt="{imageData.alt}" width=600  /> 
     <figcaption>{imageData.title}</figcaption>
   </figure>
 
@@ -64,7 +64,7 @@
     <header>
      <h2>300 Square</h2>
     </header>
-    <img src="{imagesq}/300/{image.id}/{image.file}" alt="{imageData.alt}" />
+    <img src="{imagesq}/300/{image.id}/{image.file}" alt="{imageData.alt}" width=300 />
     <figcaption>{imageData.title}</figcaption>
   </figure>
   

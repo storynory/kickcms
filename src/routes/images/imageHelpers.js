@@ -30,18 +30,3 @@ export const saveImage = async (imageid, data) => {
     }
   };
 
-//************************* Image Gallery Functions */
-
-  // Perform search on posts
- export const performSearch = (originalimages) => {
-    if (searchdata.query.trim() === '') {
-        searchdata.pics = originalimages;
-    } else {
-        searchdata.pics = originalimages.filter(
-            post =>
-                post.title.toLowerCase().includes( searchdata.query.toLowerCase())
-             
-        );
-    }
-    console.log("p search")
-};

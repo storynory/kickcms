@@ -1,20 +1,31 @@
-import { json } from '@sveltejs/kit';
-import { login as authenticate, userState, pb } from '$lib/pocketbase.svelte.js';
+import PocketBase from 'pocketbase';
 
-export async function POST({ request }) {
+/** @type {import('@sveltejs/kit').RequestHandler} */
+export async function POST({ request, locals }) {
+    const pb = locals.pb;
+
     try {
         const { email, password } = await request.json();
 
-        // Authenticate the user
-        await authenticate(email, password);
+        // Authenticate with PocketBase
+        const authData = await pb.collection('users').authWithPassword(email, password);
 
-        if (userState.user) {
-              console.log("user state", userState.user)
-            return json({ success: true, user: userState.user });
-        } else {
-            return json({ success: false, message: 'Authentication failed. Please try again.' });
-        }
-    } catch (error) {
-        return json({ success: false, message: error.message || 'Invalid email or password.' });
+        // Export auth store to a cookie
+        const authCookie = pb.authStore.exportToCookie({
+            secure: false, // Set to `true` for HTTPS in production
+            httpOnly: true,
+            sameSite: 'Lax',
+            path: '/',
+        });
+
+        return new Response(JSON.stringify(authData), {
+            status: 200,
+            headers: {
+                'set-cookie': authCookie,
+            },
+        });
+    } catch (err) {
+        console.error('Login failed:', err);
+        return new Response(JSON.stringify({ message: err.message }), { status: 401 });
     }
 }
