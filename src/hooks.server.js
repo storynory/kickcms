@@ -1,43 +1,33 @@
-import PocketBase from 'pocketbase';
+import { createInstance } from '$lib/pocketbase'
+/*import type { Handle } from '@sveltejs/kit' */
 
-/** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-    const pb = new PocketBase('https://content.socketcms.com');
-    event.locals.pb = pb;
+  const pb = createInstance()
 
-    // Load the auth store from cookies
-    const authCookie = event.request.headers.get('cookie') || '';
-    console.log('[Auth] Incoming cookie:', authCookie ? 'Present' : 'Not present');
-
-    pb.authStore.loadFromCookie(authCookie);
-
-    try {
-        if (pb.authStore.isValid) {
-            console.log('[Auth] Valid session found. Attempting to refresh...');
-            await pb.collection('users').authRefresh();
-            console.log('[Auth] Session successfully refreshed.');
-        } else {
-            console.warn('[Auth] No valid session. Clearing auth store.');
-            pb.authStore.clear();
-        }
-    } catch (err) {
-        console.error('[Auth] Failed to refresh session:', err.message);
-        pb.authStore.clear();
+  // load the store data from the request cookie string
+  pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '')
+  try {
+    // get an up-to-date auth store state by verifying and refreshing the loaded auth model (if any)
+    if (pb.authStore.isValid) {
+      await pb.collection('users').authRefresh()
+     console.log ("pb.authStore.isValid")
     }
+  } catch (_) {
+    // clear the auth store on failed refresh
+    pb.authStore.clear()
+    console.log ("failed refresh")
+  }
 
-    // Proceed with resolving the request
-    const response = await resolve(event);
+  event.locals.pb = pb
+  event.locals.user = pb.authStore.record
 
-    // Export updated auth store to cookies
-    const exportedCookie = pb.authStore.exportToCookie({
-        secure: false, // Use true for HTTPS
-        httpOnly: true,
-        sameSite: 'Lax',
-        path: '/',
-    });
+  const response = await resolve(event)
 
-    response.headers.append('set-cookie', exportedCookie);
-    console.log('[Auth] Set-cookie header updated');
-
-    return response;
+  // send back the default 'pb_auth' cookie to the client with the latest store state
+  response.headers.set(
+    'set-cookie',
+    pb.authStore.exportToCookie({ httpOnly: false }),
+  )
+  //console.log(response)
+  return response
 }

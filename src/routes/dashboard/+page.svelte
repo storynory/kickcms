@@ -7,8 +7,7 @@
     //$inspect("posts:", posts.data.posts)
     let  posts = $state()
     posts = data.data.posts.posts
-    $inspect(posts)
-  
+
     let error = ''; // Error message
     let query = $state(''); // Search query
 

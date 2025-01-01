@@ -4,7 +4,7 @@ export async function GET({ locals }) {
           sort: '-created',
           expand: 'featuredImage', // Include full details of the featured image
       });
-     console.log("posts server.js totalItems:", result.totalItems)
+    // console.log("posts server.js totalItems:", result.totalItems)
       // Extract the items array to match the getFullList format
       const posts = result.items;
       
@@ -17,9 +17,9 @@ export async function GET({ locals }) {
         },
       });
     } catch (error) {
-      console.error('Failed to fetch images:', error);
+      console.error('Failed to fetch posts:', error);
   
-      return new Response(JSON.stringify({ error: 'Failed to fetch images' }), {
+      return new Response(JSON.stringify({ error: 'Failed to fetch posts' }), {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
