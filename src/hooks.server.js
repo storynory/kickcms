@@ -6,6 +6,7 @@ import PocketBase from 'pocketbase';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
+    // reconnects to Pocketbase for every request and therefore is not going to conflict with other users
     event.locals.pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
     // load the store data from the request cookie string

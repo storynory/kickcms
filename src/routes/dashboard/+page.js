@@ -1,10 +1,20 @@
 export async function load({ fetch }) {
-    const res = await fetch('/dashboard');
-    if (!res.ok) {
-        throw new Error('Failed to fetch posts');
+    try {
+        const response = await fetch('/dashboard');
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch posts on dashboard: ${response.status}`);
+        }
+
+        // Destructure the images from the response JSON
+        const { posts, user } = await response.json();
+
+        // Export data in the consistent format
+        return { posts, user  };
+    } catch (error) {
+        console.error('Failed to load images:', error);
+
+        // Return an empty array in case of an error
+        return {images: [], user : []  };
     }
-    const posts = await res.json();
-   
-   // console.log("ok", posts)
-    return { posts, };
 }

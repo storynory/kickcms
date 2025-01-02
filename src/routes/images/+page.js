@@ -7,10 +7,10 @@ export async function load({ fetch }) {
         }
 
         // Destructure the images from the response JSON
-        const { images } = await response.json();
+        const { images, user } = await response.json();
 
         // Export data in the consistent format
-        return { images  };
+        return { images, user  };
     } catch (error) {
         console.error('Failed to load images:', error);
 
