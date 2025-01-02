@@ -1,0 +1,208 @@
+/* Basic reset for HTML5 semantic elements */
+article, 
+aside, 
+details, 
+figcaption, 
+figure, 
+footer, 
+header, 
+main, 
+mark, 
+nav, 
+section, 
+summary, 
+time {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    vertical-align: baseline;
+}
+
+/* Additional tweaks for specific elements */
+figure {
+    display: block;
+}
+
+figcaption {
+    display: block;
+    font-style: italic;
+    text-align: center;
+}
+
+mark {
+    background-color: yellow; /* Default highlight colour */
+    color: inherit;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+time {
+    font-style: italic;
+    color: inherit;
+}
+
+/************/
+/* Reset for form elements */
+form, 
+fieldset, 
+legend, 
+label, 
+input, 
+textarea, 
+button, 
+select {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+
+    box-sizing: border-box;
+}
+
+
+figure {
+    max-width: 800px;
+    margin: auto;
+    display: block; /* Use inline-block to keep the figure centered without flexbox */
+    text-align: center; /* Ensures text inside figcaption is centered */
+}
+
+figure img {
+    display: block; /* Prevents inline spacing issues with images */
+    margin: 0 auto; /* Centers the image */
+}
+
+.figcaption {
+    margin-top: 8px; /* Adds spacing between image and caption */
+    font-size: 0.9rem; /* Optional: Adjust the font size for the caption */
+    color: #555; /* Optional: Style the caption text */
+}
+
+
+
+/*forms */
+.form {
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #eaeaea;
+}
+
+label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #444;
+    letter-spacing: 0.5px;
+    padding: 1em 0 0 0;
+    line-height: 2rem;
+  }
+
+
+.input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fafafa;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+.input:focus {
+    border-color: #8a4fff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(138, 79, 255, 0.2);
+  }
+
+ 
+
+/* Buttons */
+
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 1rem;
+    background-color: #8a4fff;
+    color: white;
+    border: none;
+}
+
+.btn.full {
+ width: 100%
+}
+
+.btn.--gray {
+    background-color: gray;
+}
+
+.btn.--gray:hover {
+    background-color: silver;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+    color: #666;
+}
+
+/* Links */
+a {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+a:hover, 
+a:focus {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+a:active {
+    color: #003d80;
+}
+
+/* Checkbox and radio inputs */
+input[type="checkbox"], 
+input[type="radio"] {
+    margin-right: 0.5rem;
+    accent-color: #007bff; /* Modern browsers support this */
+}
+
+
+
+
+
+
+/* Textarea specific styles */
+textarea {
+    min-height: 100px;
+    resize: vertical; /* Allow vertical resizing only */
+}

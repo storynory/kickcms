@@ -56,7 +56,7 @@
         <h2>600 Width</h2>
       </header>
     <img src="{imageresize}/600/{image.id}/{image.file}" alt="{imageData.alt}" width=600  /> 
-    <figcaption>{imageData.title}</figcaption>
+    <figcaption class="figcaption">{imageData.title}</figcaption>
   </figure>
 
  
@@ -65,16 +65,16 @@
      <h2>300 Square</h2>
     </header>
     <img src="{imagesq}/300/{image.id}/{image.file}" alt="{imageData.alt}" width=300 />
-    <figcaption>{imageData.title}</figcaption>
+    <figcaption class="figcaption -m">{imageData.title}</figcaption>
   </figure>
   
     <!-- Form -->
-    <form onsubmit={(e) => { e.preventDefault();   saveImage(image.id, data); }}>
-      <label for="title">Title:</label>
-      <input id="title" type="text" bind:value={imageData.title} placeholder="Image Title" required />
+    <form class="form -m-y" onsubmit={(e) => { e.preventDefault();   saveImage(image.id, data); }}>
+      <label class="label" for="title">Title:</label>
+      <input id="title" class="input" type="text" bind:value={imageData.title} placeholder="Image Title" required />
   
-      <label for="alt">Alt Text:</label>
-      <input id="alt" type="text" bind:value={imageData.alt} placeholder="Alt Text" />
+      <label for="alt" class="label">Alt Text:</label>
+      <input id="alt" class="input" type="text" bind:value={imageData.alt} placeholder="Alt Text" />
   
       {#if imageData.success}
       <p style="color: green;">{imageData.success}</p>
@@ -85,9 +85,9 @@
     
 
 
-      <button type="submit">Save Changes</button>
-      <button type="button" onclick={() => goto('/images')}>Back to Gallery</button>
-      <button type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Image</button>
+      <button class="btn" type="submit">Save Changes</button>
+      <button class="btn --gray" type="button" onclick={() => goto('/images')}>Back to Gallery</button>
+      <button class="btn" type="button" onclick={openModal} style="background-color: #d9534f; color: white;">Delete Image</button>
     </form>
   {/if}
   
@@ -96,31 +96,14 @@
     <div class="modal-backdrop">
       <div class="modal">
         <p>Are you sure you want to delete this image? This action cannot be undone.</p>
-        <button onclick={confirmDeleteImage(image.id)} style="background-color: #d9534f; color: white;">Yes, Delete</button>
-        <button onclick={closeModal} style="background-color: #f4f4f4; color: #555;">Cancel</button>
+        <button class="btn" onclick={confirmDeleteImage(image.id)} style="background-color: #d9534f; color: white;">Yes, Delete</button>
+        <button class="btn" onclick={closeModal} style="background-color: #f4f4f4; color: #555;">Cancel</button>
       </div>
     </div>
   {/if}
   
   <style>
 
-figure {
-    max-width: 800px;
-    margin: auto;
-    display: block; /* Use inline-block to keep the figure centered without flexbox */
-    text-align: center; /* Ensures text inside figcaption is centered */
-}
-
-figure img {
-    display: block; /* Prevents inline spacing issues with images */
-    margin: 0 auto; /* Centers the image */
-}
-
-figcaption {
-    margin-top: 8px; /* Adds spacing between image and caption */
-    font-size: 0.9rem; /* Optional: Adjust the font size for the caption */
-    color: #555; /* Optional: Style the caption text */
-}
 
     
     
@@ -173,82 +156,7 @@ figcaption {
       border: 1px solid #ddd;
     }
     
-    
-      form {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-        max-width: 800px;
-        margin: 2rem auto;
-        background: #ffffff;
-        padding: 3rem;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        border: 1px solid #eaeaea;
-      }
-    
-      label {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #444;
-        letter-spacing: 0.5px;
-      }
-    
-      input {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        font-size: 1.1rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #fafafa;
-        transition: border-color 0.3s;
-        font-family: inherit;
-      }
-    
-      input:focus {
-        border-color: #8a4fff;
-        outline: none;
-        box-shadow: 0 0 5px rgba(138, 79, 255, 0.2);
-      }
-    
-     
-    
-      button {
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
-        font-weight: 500;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease-in-out;
-        letter-spacing: 0.5px;
-      }
-    
-      button[type="submit"] {
-        background-color: #8a4fff;
-        color: #fff;
-        border: none;
-      }
-    
-      button[type="submit"]:hover {
-        background-color: #6d3fcc;
-      }
-    
-      button[type="button"] {
-        background: #f4f4f4;
-        color: #555;
-        border: 1px solid #ddd;
-      }
-    
-      button[type="button"]:hover {
-        background: #e6e6e6;
-      }
-    
-      p {
-        font-size: 1rem;
-        text-align: center;
-        margin: 0.5rem 0;
-      }
-    
+
       p[style="color: green;"] {
         color: #2f8d46;
         font-weight: 600;

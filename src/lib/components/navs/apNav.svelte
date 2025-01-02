@@ -1,5 +1,8 @@
 <script>
-    import { userState, logout } from '$lib/pocketbase.svelte.js';
+    import { logout, userState } from '$lib/pocketbase.svelte.js';
+    //import { userState} from '$lib/shared.svelte.js'; // Import PocketBase instance and user state
+   
+
     import { goto } from '$app/navigation';
     import UserIcon from "$lib/components/icons/user.svelte"
     import HomeIcon from "$lib/components/icons/home.svelte"
@@ -9,7 +12,7 @@
     let showDropdown = $state(false); // Dropdown visibility state
 
     // Reactive derived value for username
-   
+
 let username =   $derived (userState.user?.name || userState.user?.email || 'Not Logged In')
 
 

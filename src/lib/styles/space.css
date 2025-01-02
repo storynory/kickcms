@@ -46,8 +46,8 @@ margin-right:  calc(0.5 * var(--base-line-size));
 }
 
 .-m-y {
-margin-top:  calc(0.5 * var(--base-line-size));
-margin-bottom:  calc(0.5 * var(--base-line-size));
+margin-top:  calc(1 * var(--base-line-size));
+margin-bottom:  calc(1 * var(--base-line-size));
 }
 
 .-m-lg {

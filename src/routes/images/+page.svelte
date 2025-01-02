@@ -1,5 +1,7 @@
 <script>
     import { searchdata} from './sharedImages.svelte.js';
+    //import { userState } from '$lib/shared.svelte.js'; // Import PocketBase instance and user state
+   
    import Pagination from "./ImagePaginate.svelte";
    import Search from './imageSearch.svelte'
    import Upload from './imageUpload.svelte'

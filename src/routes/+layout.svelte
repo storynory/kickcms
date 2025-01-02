@@ -2,7 +2,7 @@
     import SideDrawer from '$lib/components/navs/SideDrawer.svelte';
     import Nav from '$lib/components/navs/apNav.svelte';
     let { children } = $props();
-    import "../lib/app.css";
+    import "$lib/app.css";
 </script>
 
 <div class="layout ">

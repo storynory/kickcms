@@ -210,8 +210,8 @@ const insertImageIntoQuill = (url, alt) => {
 
     <h1>{state.postId ? 'Edit Post' : 'Create New Post'}</h1>
 
-    <form onsubmit={(e) => { e.preventDefault(); savePost(); }}>
-        <button class="save" type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
+    <form class ="form" onsubmit={(e) => { e.preventDefault(); savePost(); }}>
+        <button class="save btn full" type="submit">{state.postId ? 'Update Post' : 'Create Post'}</button>
 
         <label for="title">
             <span>Title:</span>
@@ -220,20 +220,20 @@ const insertImageIntoQuill = (url, alt) => {
 
         <label for="excerpt">
             <span>Excerpt:</span>
-            <textarea id="excerpt" bind:value={state.excerpt} placeholder="Short summary" rows="3"></textarea>
+            <textarea id="excerpt"  class="input" bind:value={state.excerpt} placeholder="Short summary" rows="3"></textarea>
         </label>
 
         <label for="quill-container">
             <span class="ql">Contents:</span>
-            <div id="quill-container" bind:this={quillContainer} tabindex="0" role="textbox" aria-multiline="true"></div>
+            <div id="quill-container" class="input" bind:this={quillContainer} tabindex="0" role="textbox" aria-multiline="true"></div>
         </label>
 
         <label for="slug">
             <span>Slug:</span>
-            <input id="slug" type="text" bind:value={state.slug} oninput={() => (state.slugFixed = true)} placeholder="Slug" required />
+            <input id="slug" type="text"  class="input" bind:value={state.slug} oninput={() => (state.slugFixed = true)} placeholder="Slug" required />
         </label>
 
-        <button type="button" onclick={openModal}>Select Featured Image</button>
+        <button class="btn full" type="button" onclick={openModal}>Select Featured Image</button>
         {#if state.featuredImageData}
             <div class="thumbnail-preview">
                 <img
@@ -241,9 +241,9 @@ const insertImageIntoQuill = (url, alt) => {
                     alt={state.altText}
                 />
                 <label>Alt Text:</label>
-                <input type="text" bind:value={state.altText} placeholder="Alt text" />
+                <input type="text"  class="input"  bind:value={state.altText} placeholder="Alt text" />
                 <label>Image Title:</label>
-                <input type="text" bind:value={state.imageTitle} placeholder="Image title" />
+                <input type="text"  class="input"  bind:value={state.imageTitle} placeholder="Image title" />
             </div>
         {/if}
     </form>
@@ -268,7 +268,7 @@ const insertImageIntoQuill = (url, alt) => {
                         </button>
                     {/each}
                 </div>
-                <button onclick={closeModal}>Close</button>
+                <button class="btn" onclick={closeModal}>Close</button>
             </div>
         </div>
     {/if}
@@ -348,7 +348,7 @@ const insertImageIntoQuill = (url, alt) => {
     button.save {
         margin-bottom: 2rem;
     }
-
+/*
     form {
         width: 100%;
         max-width: 800px;
@@ -431,7 +431,7 @@ const insertImageIntoQuill = (url, alt) => {
     button[type="button"]:hover {
         background: #e6e6e6;
     }
-
+*/
     p[style="color: green;"],
     p[style="color: red;"] {
         text-align: centre;
