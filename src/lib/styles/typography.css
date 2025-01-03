@@ -58,7 +58,7 @@ main {
     h3 {
         line-height: calc(1.5 * var(--base-line-size));
         font-size: calc(var(--base-font-scale) * 1rem);
-        margin-bottom: calc(var(--base-line-size) * 1);
+      
     }
 
     h4 {

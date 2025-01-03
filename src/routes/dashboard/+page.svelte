@@ -1,5 +1,35 @@
 <script>
-let posts = $props();
-console.log("dash page" ,posts.data.posts.items)
-</script>
-hello {posts.data.user.name}
+	import { login } from '$lib/convert.svelte.js';
+    
+    import PostCard from '$lib/components/postCard.svelte'
+  
+    let { data } = $props();
+  
+    //console.log("dashboard", data.posts, data.user);
+    let posts = data.posts.items;
+    let user = data.user
+ 
+  </script>
+  Hey there {user.name}
+    <div class="gallery">
+    
+  {#each posts as post}
+  <div class="gallery-item">  
+    <PostCard cardData = {post} />
+</div>
+  {/each}
+  
+</div>
+  <style>
+
+.gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  
+   
+  </style>

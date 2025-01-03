@@ -7,12 +7,14 @@ export async function load({ fetch }) {
         }
 
         // Destructure the images from the response JSON
-        const { posts, user } = await response.json();
+        let { posts, user } = await response.json();
+         // console.log(posts)
+     
 
         // Export data in the consistent format
         return { posts, user  };
     } catch (error) {
-        console.error('Failed to load images:', error);
+        console.error('Failed to load posts:', error);
 
         // Return an empty array in case of an error
         return {images: [], user : []  };
