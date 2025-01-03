@@ -2,15 +2,17 @@
 	import { login } from '$lib/convert.svelte.js';
     
     import PostCard from '$lib/components/postCard.svelte'
-  
-    let { data } = $props();
+   
+    let { data} = $props();
+    console.log("dash page", data.user)
   
     //console.log("dashboard", data.posts, data.user);
     let posts = data.posts.items;
-    let user = data.user
+    //let user = data.user
+ 
  
   </script>
-  Hey there {user.name}
+{data.user.email}
     <div class="gallery">
     
   {#each posts as post}

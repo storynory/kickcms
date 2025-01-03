@@ -7,6 +7,7 @@ export async function GET({ locals }) {
 
         const posts = result;
         const user = locals.pb.authStore.isValid ? locals.pb.authStore.model : null;
+       // console.log(user)
 
         return new Response(
             JSON.stringify({ posts, user }),
@@ -30,6 +31,7 @@ export async function GET({ locals }) {
                 },
             }
         );
+        
     }
 }
 

@@ -12,8 +12,8 @@ export async function POST({ request, locals }) {
 
         // Export auth store to a cookie
         const authCookie = pb.authStore.exportToCookie({
-            secure: true, // Set to `true` for HTTPS in production
-            httpOnly: true,
+            secure: false, // Set to `true` for HTTPS in production
+            httpOnly: false,
             sameSite: 'Lax',
             path: '/',
         });

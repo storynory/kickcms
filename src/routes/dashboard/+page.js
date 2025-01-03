@@ -1,22 +1,26 @@
-export async function load({ fetch }) {
+export async function load({ fetch}) {
+   
+  
     try {
         const response = await fetch('/dashboard');
-
+ 
+     
         if (!response.ok) {
             throw new Error(`Failed to fetch posts on dashboard: ${response.status}`);
         }
 
-        // Destructure the images from the response JSON
+        // Destructure the posts from the response JSON
         let { posts, user } = await response.json();
-         // console.log(posts)
+          console.log("dash server",user)
      
-
+     
         // Export data in the consistent format
-        return { posts, user  };
+        return { posts, user };
     } catch (error) {
         console.error('Failed to load posts:', error);
 
         // Return an empty array in case of an error
-        return {images: [], user : []  };
+     
+        return {images: []  };
     }
 }
