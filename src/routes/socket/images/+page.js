@@ -1,6 +1,6 @@
 export async function load({ fetch }) {
     try {
-        const response = await fetch('/images');
+        const response = await fetch('/socket/images');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch images: ${response.status}`);

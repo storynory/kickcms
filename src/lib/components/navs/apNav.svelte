@@ -32,10 +32,10 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
 <nav class = "content">
     {#if userState.user}
     <div class="nav-left">
-        <a class="-p-x" href="/dashboard" aria-label="Go to Dashboard">
+        <a class="-p-x" href="/socket/dashboard" aria-label="Go to Dashboard">
         <HomeIcon />
         </a>
-        <a class="-p-x" href="/images" aria-label="Go to images">
+        <a class="-p-x" href="/socket/images" aria-label="Go to images">
             <ImageIcon />
             </a>
       </div>

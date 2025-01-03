@@ -2,7 +2,7 @@ export async function load({ fetch}) {
    
   
     try {
-        const response = await fetch('/dashboard');
+        const response = await fetch('/socket/dashboard');
  
      
         if (!response.ok) {

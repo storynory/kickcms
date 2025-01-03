@@ -21,6 +21,6 @@ export const actions = {
         } catch (err) {
             return error(401, { error: 'Invalid credentials' });
         }
-        throw redirect(303, '/dashboard'); 
+        throw redirect(303, '/socket/dashboard'); 
     }
 };

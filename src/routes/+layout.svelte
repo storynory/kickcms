@@ -3,12 +3,13 @@
     import Nav from '$lib/components/navs/apNav.svelte';
     let { children } = $props();
     import "$lib/app.css";
+    
 </script>
 
 <div class="layout ">
     <SideDrawer />
    
-        <Nav />
+      
 
     <main class="container page-width">
         {@render children()}

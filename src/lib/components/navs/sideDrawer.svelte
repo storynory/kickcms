@@ -19,11 +19,11 @@
     <button class="close-btn" onclick={toggleDrawer} aria-label="Close Drawer">✕</button>
     <nav>
         <ul>
-       <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/posts/new">New Post</a></li>
-        <li><a href="/images">Images</a></li>
-        <li><a href="/categories">Categories</a></li>
-        <li><a href="/categories/edit/new">Add Category</a></li>
+       <li><a href="/socket/dashboard">Dashboard</a></li>
+        <li><a href="/socket/posts/new">New Post</a></li>
+        <li><a href="/socket/images">Images</a></li>
+        <li><a href="/socket/categories">Categories</a></li>
+        <li><a href="/socket/categories/edit/new">Add Category</a></li>
     </ul>
     </nav>
 </div>
