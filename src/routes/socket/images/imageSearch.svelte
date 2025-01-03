@@ -106,7 +106,7 @@ class="search-input"
 <div class="gallery">
     {#each searchdata.pics as image}
       <div class="gallery-item">
-        <a href={`/images/${image.id}`}>
+        <a href="/socket/images/{image.id}">
           <div class="image-container">
             <img 
               src="{imagesq}/300/{image.id}/{image.image}"

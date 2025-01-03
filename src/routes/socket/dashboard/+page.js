@@ -10,12 +10,12 @@ export async function load({ fetch}) {
         }
 
         // Destructure the posts from the response JSON
-        let { posts, user } = await response.json();
-          console.log("dash server",user)
+        let { posts } = await response.json();
+          
      
      
         // Export data in the consistent format
-        return { posts, user };
+        return { posts };
     } catch (error) {
         console.error('Failed to load posts:', error);
 

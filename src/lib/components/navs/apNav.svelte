@@ -1,5 +1,5 @@
 <script>
-    import { logout, userState } from '$lib/pocketbase.svelte.js';
+    import { logout,  } from '$lib/pocketbase.svelte.js';
     //import { userState} from '$lib/shared.svelte.js'; // Import PocketBase instance and user state
    
 
@@ -13,14 +13,13 @@
 
     // Reactive derived value for username
 
-let username =   $derived (userState.user?.name || userState.user?.email || 'Not Logged In')
-
+let username =  "bertie"
 
     // Logout function
     const handleLogout = () => {
         logout(); // Clear user session
         showDropdown = false; // Hide dropdown
-        goto('/'); // Redirect to login page
+        goto('/login'); // Redirect to login page
     };
 
     // Toggle dropdown visibility
@@ -30,7 +29,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
 </script>
 
 <nav class = "content">
-    {#if userState.user}
+   
     <div class="nav-left">
         <a class="-p-x" href="/socket/dashboard" aria-label="Go to Dashboard">
         <HomeIcon />
@@ -42,7 +41,7 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
      
     
 
-    {/if}
+
     <div class="nav-right">
         <div class="-p-x"><a href="/posts/new">+ Create</a></div>
         <button
@@ -55,11 +54,11 @@ let username =   $derived (userState.user?.name || userState.user?.email || 'Not
         <span class="username">{username}</span>
         {#if showDropdown}
             <div class="dropdown" role="menu">
-                {#if userState.user}
+               
                     <button onclick={handleLogout} role="menuitem">Logout</button>
-                {:else}
+              
                     <a href="/" role="menuitem">Login</a>
-                {/if}
+           
             </div>
         {/if}
     </div>

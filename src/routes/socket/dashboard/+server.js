@@ -6,11 +6,11 @@ export async function GET({ locals }) {
         });
 
         const posts = result;
-        const user = locals.pb.authStore.isValid ? locals.pb.authStore.model : null;
+       // const user = locals.pb.authStore.isValid ? locals.pb.authStore.model : null;
        // console.log(user)
 
         return new Response(
-            JSON.stringify({ posts, user }),
+            JSON.stringify({ posts }),
             {
                 status: 200,
                 headers: {

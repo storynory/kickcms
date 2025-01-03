@@ -9,7 +9,7 @@
 <div class="layout ">
     <SideDrawer />
    
-      
+        <Nav />
 
     <main class="container page-width">
         {@render children()}

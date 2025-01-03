@@ -4,7 +4,7 @@
     import PostCard from '$lib/components/postCard.svelte'
    
     let { data} = $props();
-    console.log("dash page", data.user)
+ 
   
     //console.log("dashboard", data.posts, data.user);
     let posts = data.posts.items;
@@ -12,7 +12,7 @@
  
  
   </script>
-{data.user.email}
+
     <div class="gallery">
     
   {#each posts as post}
